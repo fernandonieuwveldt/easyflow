@@ -59,7 +59,7 @@ class BaseClassifier(ABC):
             target ([type], optional): [description]. Defaults to None.
         """
         train_data_set, val_data_set = self.split_data_set(features, target)
-        self.model = self.compile_model(train_data_set)  # check if this correct
+        self.model = self.compile_model(train_data_set)
         self.early_stopping = tf.keras.callbacks.EarlyStopping(**EARLY_STOPPING_PARAMS)
         self.model_checkpoint = tf.keras.callbacks.ModelCheckpoint(**MODEL_CHECKPOINT_PARAMS)
         self.model.fit(train_data_set,
