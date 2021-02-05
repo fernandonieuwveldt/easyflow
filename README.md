@@ -1,2 +1,2 @@
-# easyflow
-Easy Tensorflow recipes
+# Easyflow
+Idea behind the project is to create easier interface to tensorflow for a more automated process to train models. In progress...
