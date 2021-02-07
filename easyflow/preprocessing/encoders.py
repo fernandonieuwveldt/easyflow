@@ -5,21 +5,33 @@ from .base import extract_feature_column
 
 
 class CategoricalEncoder(BaseFeatureEncoder):
+    """Categorical encoding similar to OneHotEncoder
+    """
     def __init__(self):
         super().__init__(CategoryEncoding(max_tokens=30, output_mode="binary"))
 
 
 class StringIndexer(BaseFeatureEncoder):
+    """String index if categorical feature is of type and not int"""
     def __init__(self):
         super().__init__(StringLookup())
 
 
 class StringCategoricalEncoder:
+    """Applies SringIndexer followed by Categorical encoder"""
     def __init__(self, max_tokens=None):
         self.max_tokens = max_tokens
 
     def encode(self, input_feature, name, dataset):
-        """
+        """Encoded dataset with StringIndexer followed b
+
+        Args:
+            input_feature ([str]): feature to encode
+            name ([str]): feature to encode
+            dataset (tf.Data): [description]
+
+        Returns:
+            tf.Data.dataset: encoded feature
         """
         feature_ds = extract_feature_column(dataset, name)
         # apply String Indexer
