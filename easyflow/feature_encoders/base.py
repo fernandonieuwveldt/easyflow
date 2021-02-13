@@ -5,7 +5,7 @@ from abc import ABC, abstractclassmethod
 class BaseFeatureColumnEncoder(ABC):
     """Base class for a tensorlow feature column based encoder"""
 
-    @abstractclassmethod
+    @abstractmethod
     def encode(self, X):
         """Encoder to be implemented
 
