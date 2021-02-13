@@ -18,9 +18,10 @@ class CategoricalFeatureEncoder(BaseFeatureColumnEncoder):
 
         Args:
             X (pandas.DataFrame): Features Data to apply encoder on.
+            features (list): list of feature names
 
         Returns:
-            [dict, list]: Keras inputs for each feature and list of encoders
+            (dict, list): Keras inputs for each feature and list of encoders
         """
         feature_vocab_list, categorical_inputs, feature_encoders = {}, {}, {}
 
@@ -35,17 +36,23 @@ class EmbeddingFeatureEncoder(BaseFeatureColumnEncoder):
     """
     Class encodes high cardinality Categorical features(Embeddings) using tensorflow feature_columns
     """
-    def __init__(self, embedding_space_factor=0.5):
+
+    def __init__(self, initializer=None, embedding_space_factor=0.5, max_dimension=50):
+        self.initializer = initializer
+        if not self.initializer:
+            self.initializer = tf.keras.initializers.RandomNormal(mean=0., stddev=1.)
         self.embedding_space_factor = embedding_space_factor
+        self.max_dimension = max_dimension
 
     def encode(self, X=None, features=None):
         """Encoding features as Embeddings with tensorflow feature columns
 
         Args:
             X (pandas.DataFrame): Features Data to apply encoder on.
+            features (list): list of feature names
 
         Returns:
-            [dict, list]: Keras inputs for each feature and list of encoders
+            (dict, list): Keras inputs for each feature and list of encoders
         """
         feature_vocab_list, embedding_inputs, feature_encoders = {}, {}, {}
 
@@ -54,8 +61,8 @@ class EmbeddingFeatureEncoder(BaseFeatureColumnEncoder):
             embedding_inputs[feature] = tf.keras.Input(shape=(1,), name=feature, dtype=tf.string)
             feature_vocab_list[feature] = tf.feature_column.categorical_column_with_vocabulary_list(feature, uniq_vocab)
             feature_encoders[feature] = tf.feature_column.embedding_column(feature_vocab_list[feature],
-                                                                           initializer=tf.keras.initializers.RandomNormal(mean=0., stddev=1.),
-                                                                           dimension=min(int(len(uniq_vocab)**self.embedding_space_factor), 50))
+                                                                           initializer=self.initializer,
+                                                                           dimension=min(int(len(uniq_vocab)**self.embedding_space_factor), self.max_dimension))
         return embedding_inputs, [feature for _, feature in feature_encoders.items()]
 
 
@@ -71,9 +78,10 @@ class NumericalFeatureEncoder(BaseFeatureColumnEncoder):
 
         Args:
             X (pandas.DataFrame): Features Data to apply encoder on.
+            features (list): list of feature names
 
         Returns:
-            [dict, list]: Keras inputs for each feature and list of encoders
+            (dict, list): Keras inputs for each feature and list of encoders
         """
         numerical_inputs, feature_encoders = {}, {}
 
