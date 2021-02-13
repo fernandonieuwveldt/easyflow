@@ -3,43 +3,53 @@ classes for encoding features using tensorflow features columns
 """
 import tensorflow as tf
 
+from .base import BaseFeatureColumnEncoder
 
-class CategoricalFeatureEncoder:
+
+class CategoricalFeatureEncoder(BaseFeatureColumnEncoder):
     """
     Class encodes Categorical features using tensorflow feature_columns
     """
-    def __init__(self, features=None):
-        self.features = features
+    def __init__(self):
+        pass
 
-    def encode(self, X=None):
-        """
-        Set inputs and catergorical vocab list
+    def encode(self, X=None, features=None):
+        """Encoding features as one hot encoded with tensorflow feature columns
+
+        Args:
+            X (pandas.DataFrame): Features Data to apply encoder on.
+
+        Returns:
+            [dict, list]: Keras inputs for each feature and list of encoders
         """
         feature_vocab_list, categorical_inputs, feature_encoders = {}, {}, {}
 
-        for feature in self.features:
+        for feature in features:
             categorical_inputs[feature] = tf.keras.Input(shape=(1,), name=feature, dtype=tf.string)
             feature_vocab_list[feature] = tf.feature_column.categorical_column_with_vocabulary_list(feature, X[feature].unique().tolist())
             feature_encoders[feature] = tf.feature_column.indicator_column(feature_vocab_list[feature])
         return categorical_inputs, [feature for _, feature in feature_encoders.items()]
 
 
-class EmbeddingFeatureEncoder:
+class EmbeddingFeatureEncoder(BaseFeatureColumnEncoder):
     """
     Class encodes high cardinality Categorical features(Embeddings) using tensorflow feature_columns
     """
-
-    def __init__(self, features, embedding_space_factor=0.5):
-        self.features = features
+    def __init__(self, embedding_space_factor=0.5):
         self.embedding_space_factor = embedding_space_factor
 
-    def encode(self, X=None):
-        """
-        Set inputs and dimension for embedding output space
+    def encode(self, X=None, features=None):
+        """Encoding features as Embeddings with tensorflow feature columns
+
+        Args:
+            X (pandas.DataFrame): Features Data to apply encoder on.
+
+        Returns:
+            [dict, list]: Keras inputs for each feature and list of encoders
         """
         feature_vocab_list, embedding_inputs, feature_encoders = {}, {}, {}
 
-        for feature in self.features:
+        for feature in features:
             uniq_vocab = X[feature].unique().tolist()
             embedding_inputs[feature] = tf.keras.Input(shape=(1,), name=feature, dtype=tf.string)
             feature_vocab_list[feature] = tf.feature_column.categorical_column_with_vocabulary_list(feature, uniq_vocab)
@@ -49,21 +59,25 @@ class EmbeddingFeatureEncoder:
         return embedding_inputs, [feature for _, feature in feature_encoders.items()]
 
 
-class NumericalFeatureEncoder:
+class NumericalFeatureEncoder(BaseFeatureColumnEncoder):
     """
     Class encodes numerical features using tensorflow feature_columns
     """
+    def __init__(self):
+        pass
 
-    def __init__(self, features):
-        self.features = features
+    def encode(self, X=None, features=None):
+        """Encoding numerical type features with tensorflow feature columns
 
-    def encode(self, X=None):
-        """
-        Set inputs for numerical features
+        Args:
+            X (pandas.DataFrame): Features Data to apply encoder on.
+
+        Returns:
+            [dict, list]: Keras inputs for each feature and list of encoders
         """
         numerical_inputs, feature_encoders = {}, {}
 
-        for feature in self.features:
+        for feature in features:
             numerical_inputs[feature] = tf.keras.Input(shape=(1,), name=feature, dtype=tf.float32)
             feature_encoders[feature] = tf.feature_column.numeric_column(feature)
         return numerical_inputs, [feature for _, feature in feature_encoders.items()]

@@ -1,20 +1,27 @@
-from tensorflow.keras.layers.experimental.preprocessing import CategoryEncoding
 from tensorflow.keras.layers.experimental.preprocessing import StringLookup
+from tensorflow.keras.layers.experimental.preprocessing import CategoryEncoding
+from tensorflow.keras.layers.experimental.preprocessing import Normalization
 
 from .base import extract_feature_column
+
+
+class NormalizationEncoder(BaseFeatureEncoder):
+    """Feature normalizer"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(Normalization(*args, **kwargs))
 
 
 class CategoricalEncoder(BaseFeatureEncoder):
     """Categorical encoding similar to OneHotEncoder
     """
-    def __init__(self):
-        super().__init__(CategoryEncoding(max_tokens=30, output_mode="binary"))
+    def __init__(self, *args, **kwargs):
+        super().__init__(CategoryEncoding(*args, **kwargs))
 
 
 class StringIndexer(BaseFeatureEncoder):
     """String index if categorical feature is of type and not int"""
-    def __init__(self):
-        super().__init__(StringLookup())
+    def __init__(self, *args, **kwargs):
+        super().__init__(StringLookup(*args, **kwargs))
 
 
 class StringCategoricalEncoder:
