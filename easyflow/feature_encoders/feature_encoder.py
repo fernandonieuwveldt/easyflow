@@ -36,7 +36,6 @@ class EmbeddingFeatureEncoder(BaseFeatureColumnEncoder):
     """
     Class encodes high cardinality Categorical features(Embeddings) using tensorflow feature_columns
     """
-
     def __init__(self, initializer=None, embedding_space_factor=0.5, max_dimension=50):
         self.initializer = initializer
         if not self.initializer:
@@ -57,8 +56,8 @@ class EmbeddingFeatureEncoder(BaseFeatureColumnEncoder):
         feature_vocab_list, embedding_inputs, feature_encoders = {}, {}, {}
 
         for feature in features:
-            uniq_vocab = X[feature].unique().tolist()
             embedding_inputs[feature] = tf.keras.Input(shape=(1,), name=feature, dtype=tf.string)
+            uniq_vocab = X[feature].unique().tolist()
             feature_vocab_list[feature] = tf.feature_column.categorical_column_with_vocabulary_list(feature, uniq_vocab)
             feature_encoders[feature] = tf.feature_column.embedding_column(feature_vocab_list[feature],
                                                                            initializer=self.initializer,
