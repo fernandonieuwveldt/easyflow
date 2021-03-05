@@ -16,8 +16,8 @@ class TFDataTransformer:
         """Transform from data frame to data_set
 
         Args:
-            data_frame ([type], optional): [description]. Defaults to None.
-            labels ([type], optional): [description]. Defaults to None.
+            data_frame_features (pandas.DataFrame): Features Data.
+            data_frame_labels (pandas.DataFrame): Target Data
         """
         total_samples = min(1024, len(data_frame_features))
         if data_frame_labels is not None:
@@ -29,7 +29,7 @@ class TFDataTransformer:
         """transform data
 
         Args:
-            data_frame_features ([type], optional): [description]. Defaults to None.
-            data_frame_labels ([type], optional): [description]. Defaults to None.
+            data_frame_features (pandas.DataFrame): Features Data.
+            data_frame_labels (pandas.DataFrame): Target Data
         """
         return self.data_frame_to_dataset(data_frame_features, data_frame_labels)
