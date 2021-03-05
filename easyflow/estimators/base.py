@@ -60,5 +60,5 @@ class BaseClassifier(ABC):
         Returns:
             (numpy.array): array of confidences
         """
-        X = TFDataTransformer().transform(X).batch(self.batch_size) # need to fix batch size from model object?
+        X = TFDataTransformer().transform(X).batch(self.batch_size)
         return self.model.predict(X)
