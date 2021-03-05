@@ -8,7 +8,7 @@ class FeatureColumnTransformer:
     """Apply column based transformation on the data
 
     Args:
-        feature_encoder_list : 
+        feature_encoder_list : List of encoders of the form: ('name', encoder type, list of features)
     """
     def __init__(self, feature_encoder_list=None):
         self.feature_encoder_list = feature_encoder_list
@@ -46,16 +46,5 @@ class FeatureUnionTransformer(FeatureColumnTransformer):
         """
         feature_layer_inputs, feature_encoders = super().transform(X)
         # flatten (or taking the union) of feature encoders 
-        return feature_layer_inputs, list(feature_encoders.values())
-
-
-if __name__ == '__main__':
-    """
-    An example:
-
-    feature_encoder_list = [('numeric_encoder', NumericalFeatureEncoder(), NUMERIC_FEATURE_COLUMNS),
-                            ('categoric_encoder', CategoricalFeatureEncoder(), CATEGORICAL_FEATURE_COLUMNS)
-                            ]
-    transformer = FeatureColumnTransformer(feature_encoder_list)
-    transformer.encode(data)
-    """
+        return feature_layer_inputs, [fe for transformer in list(feature_encoders.values())\
+            for fe in transformer]
