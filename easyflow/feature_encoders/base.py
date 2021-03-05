@@ -1,5 +1,5 @@
 """Base Classes for encoders using tensrflow feature columns"""
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 
 
 class BaseFeatureColumnEncoder(ABC):

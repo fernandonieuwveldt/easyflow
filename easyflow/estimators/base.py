@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import tensorflow as tf
 
-from easyflow.data import TFDataMapper
+from easyflow.data import TFDataTransformer
 
 
 class BaseClassifier(ABC):
@@ -12,7 +12,7 @@ class BaseClassifier(ABC):
         self.train_split_fraction = train_split_fraction # should not be instance variable
 
     @abstractmethod
-    def compile_model(self, samples):
+    def compile_model(self, samples, target):
         """Set up network architecture and return compiled model. This method needs to be implemented in the parent class
 
         Args:
@@ -31,7 +31,7 @@ class BaseClassifier(ABC):
         """
         rows = features.shape[0]
         training_size = int(self.train_split_fraction * rows)
-        dataset = TFDataMapper().transform(features, target)
+        dataset = TFDataTransformer().transform(features, target)
         train_data_set = dataset.take(training_size).batch(batch_size)
         val_data_set = dataset.skip(training_size).batch(batch_size)
         return train_data_set, val_data_set
@@ -43,14 +43,15 @@ class BaseClassifier(ABC):
             features (pandas.DataFrame): Features Data
             target (pandas.Series): Target Data
         """
+        self.batch_size = batch_size
+        self.model = self.compile_model(features, target)
         train_data_set, val_data_set = self.split_data_set(features, target, batch_size)
-        self.model = self.compile_model(train_data_set)
         self.model.fit(train_data_set,
                        validation_data=val_data_set,
                        **kwargs)
         return self
 
-    def predict_proba(self, X=None):
+    def predict(self, X=None):
         """Apply trained model on data
 
         Args:
@@ -59,5 +60,5 @@ class BaseClassifier(ABC):
         Returns:
             (numpy.array): array of confidences
         """
-        X = TFDataMapper().transform(X).batch(self.batch_size)
+        X = TFDataTransformer().transform(X).batch(self.batch_size) # need to fix batch size from model object?
         return self.model.predict(X)

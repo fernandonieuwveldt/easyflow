@@ -1,5 +1,5 @@
 """
-classes for encoding features using tensorflow features columns
+Interface to use tensorflow feature columns with Keras. Only most used encoders
 """
 import tensorflow as tf
 

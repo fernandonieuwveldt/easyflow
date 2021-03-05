@@ -19,8 +19,12 @@ class TFDataTransformer:
             data_frame ([type], optional): [description]. Defaults to None.
             labels ([type], optional): [description]. Defaults to None.
         """
-        dataset = tf.data.Dataset.from_tensor_slices((dict(data_frame_features), data_frame_labels.values)).shuffle(1000)
-        return dataset       
+        # dataset = tf.data.Dataset.from_tensor_slices((dict(data_frame_features), data_frame_labels.values)).shuffle(1000)
+        # return dataset       
+        if data_frame_labels is not None:
+            return tf.data.Dataset.from_tensor_slices((dict(data_frame_features), data_frame_labels.values)).shuffle(1000) # change hardcoded value
+        else:
+            return tf.data.Dataset.from_tensor_slices(dict(data_frame_features))
 
     def transform(self, data_frame_features=None, data_frame_labels=None):
         """transform data

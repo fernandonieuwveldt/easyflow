@@ -27,8 +27,26 @@ class FeatureColumnTransformer:
         for (name, encoder, features) in self.feature_encoder_list:
             feature_inputs, feature_encoded = encoder.encode(X, features)
             feature_layer_inputs.update(feature_inputs)
-            feature_encoders.update(feature_encoded)
+            feature_encoders[name] = feature_encoded
         return feature_layer_inputs, feature_encoders
+
+
+class FeatureUnionTransformer(FeatureColumnTransformer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def transform(self, X):
+        """Join features. If more flexibility and customization is needed use FeatureColumnTransformer.
+
+        Args:
+            X (pandas.DataFrame): Features Data to apply encoder on.
+
+        Returns:
+            (dict, list): Keras inputs for each feature and list of encoders
+        """
+        feature_layer_inputs, feature_encoders = super().transform(X)
+        # flatten (or taking the union) of feature encoders 
+        return feature_layer_inputs, list(feature_encoders.values())
 
 
 if __name__ == '__main__':
