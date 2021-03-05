@@ -1,5 +1,5 @@
 """
-data loading
+data loading and transforming pandas dataframe to Tensorflow Dataset
 """
 
 import pandas
@@ -19,10 +19,9 @@ class TFDataTransformer:
             data_frame ([type], optional): [description]. Defaults to None.
             labels ([type], optional): [description]. Defaults to None.
         """
-        # dataset = tf.data.Dataset.from_tensor_slices((dict(data_frame_features), data_frame_labels.values)).shuffle(1000)
-        # return dataset       
+        total_samples = min(1024, len(data_frame_features))
         if data_frame_labels is not None:
-            return tf.data.Dataset.from_tensor_slices((dict(data_frame_features), data_frame_labels.values)).shuffle(1000) # change hardcoded value
+            return tf.data.Dataset.from_tensor_slices((dict(data_frame_features), data_frame_labels.values)).shuffle(total_samples)
         else:
             return tf.data.Dataset.from_tensor_slices(dict(data_frame_features))
 
