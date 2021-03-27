@@ -39,8 +39,34 @@ class BaseFeaturePreprocessor:
             tf.Data.dataset: encoded feature
         """
         feature_ds = extract_feature_column(dataset, name)
+        self.adapt(feature_ds)
         encoded_feature = self.encoder(input_feature)
         return encoded_feature
+
+
+class Pipeline:
+    """
+    Preprocessing pipeline to apply multiple encoders in serie
+    """
+    
+    def __init__(self, steps=None):
+        self.steps = steps
+    
+    def adapt(self, data):
+        """
+        
+        """
+        feature_data = data
+        self.encoders = {}
+        for (name, preprocessor) in self.steps:
+            preprocessor.adapt(feature_data)
+            self.encoders[name] = preprocessor
+            encoded_feature = preprocessor(feature_data)
+    
+    def encode(self, newdata):
+        for (name, encoder) in self.encoders:
+            newdata = encoder(newdata)
+        return newdata
 
 
 class BasePreprocessingColummnTransformer:
@@ -56,7 +82,7 @@ class BasePreprocessingColummnTransformer:
         Returns:
             list: list of keras inputs
         """
-        return [tf.keras.Input(shape=(), name=feature, dtype="int64") for feature in features]
+        return [tf.keras.Input(shape=(), name=feature, dtype="string") for feature in features]
 
     def encode_input_features(self, features=None, all_inputs=None, dataset=None):
         """ Encode Input with specified preprocessing layer
@@ -99,6 +125,8 @@ class PreprocessorColumnTransformer:
         feature_encoders = []
         for (name, preprocessor, features) in self.feature_encoder_list:
             preprocessor = BasePreprocessingColummnTransformer(preprocessor)
+            # feature_ds = extract_feature_column(dataset, name)
+            # preprocessor.adapt(feature_ds)
             feature_inputs, feature_encoded = preprocessor.encode(dataset, features)
             feature_layer_inputs[name] = feature_inputs
             feature_encoders.extend(feature_encoded)
@@ -129,7 +157,7 @@ class PreprocessorUnionTransformer(PreprocessorColumnTransformer):
 
 
 if __name__ == '__main__':
-    from tensorflow.keras.layers.experimental.preprocessing import Normalization, CategoryEncoding
+    from tensorflow.keras.layers.experimental.preprocessing import Normalization, CategoryEncoding, StringLookup
 
     import os
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -153,9 +181,9 @@ if __name__ == '__main__':
     dataset = TFDataTransformer().transform(train_data_features,
                                             raw_labels).batch(512)
     feature_encoder_list = [
-                            ('numeric_gene_encoder', Normalization(), numerical_features_gene[:5]),
+                            # ('numeric_gene_encoder', Normalization(), numerical_features_gene[:5]),
                             #('numeric_cell_encoder', Normalization(), numerical_features_cell[:5]),
-                            # ('categorical_encoder', CategoryEncoding(max_tokens=3, output_mode="binary"), categorical_features)
+                            ('categorical_encoder', StringLookup(), categorical_features)
                             ]
     preprocessor = PreprocessorUnionTransformer(feature_encoder_list)
     feature_layer_inputs, feature_encoders = preprocessor.transform(dataset)

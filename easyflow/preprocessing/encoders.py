@@ -33,7 +33,7 @@ class StringCategoricalEncoder:
         """Encoded dataset with StringIndexer followed b
 
         Args:
-            input_feature ([str]): feature to encode
+            input_feature (str): feature to encode
             name ([str]): feature to encode
             dataset (tf.Data): [description]
 
