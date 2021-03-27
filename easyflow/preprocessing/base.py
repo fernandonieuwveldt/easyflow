@@ -8,110 +8,26 @@ def extract_feature_column(dataset, name):
     return dataset
 
 
-class BaseFeaturePreprocessor:
-    """
-    Base class for encoding features with Keras preprocessing layers
-    """
-    def __init__(self, encoder=None):
-        self.encoder = encoder
+class BaseFeatureTransformer:
+    def __init__(self, feature_encoder_list=None):
+        self.feature_encoder_list = feature_encoder_list
 
-    def adapt(self, feature_dataset=None):
-        """Apply stateful preprocessing layer
-
-        Args:
-            feature_dataset (tf.Data.dataset): feature data 
-
-        Returns:
-            encoded features
-        """
-        self.encoder.adapt(feature_dataset)
-        return self
-
-    def encode(self, input_feature, name, dataset):
-        """Encoded dataset with adapted encoder
-
-        Args:
-            input_feature (str): feature to encode
-            name (str): feature to encode
-            dataset (tf.Data): [description]
-
-        Returns:
-            tf.Data.dataset: encoded feature
-        """
-        feature_ds = extract_feature_column(dataset, name)
-        self.adapt(feature_ds)
-        encoded_feature = self.encoder(input_feature)
-        return encoded_feature
-
-
-class Pipeline:
-    """
-    Preprocessing pipeline to apply multiple encoders in serie
-    """
-    
-    def __init__(self, steps=None):
-        self.steps = steps
-    
-    def adapt(self, data):
-        """
-        
-        """
-        feature_data = data
-        self.encoders = {}
-        for (name, preprocessor) in self.steps:
-            preprocessor.adapt(feature_data)
-            self.encoders[name] = preprocessor
-            encoded_feature = preprocessor(feature_data)
-    
-    def encode(self, newdata):
-        for (name, encoder) in self.encoders:
-            newdata = encoder(newdata)
-        return newdata
-
-
-class BasePreprocessingColummnTransformer:
-    """
-    Base class for the inputs to the neural network
-    """
-    def __init__(self, feature_encoder=None):
-        self.encoder = BaseFeaturePreprocessor(feature_encoder)
-
-    def create_inputs(self, features):
+    def create_inputs(self, features, dtype):
         """Create inputs for Keras Model
 
         Returns:
             list: list of keras inputs
         """
-        return [tf.keras.Input(shape=(), name=feature, dtype="string") for feature in features]
-
-    def encode_input_features(self, features=None, all_inputs=None, dataset=None):
-        """ Encode Input with specified preprocessing layer
-
-        Args:
-            all_inputs (list): list of Keras inputs
-            dataset (tf.Data.dataset): data the preprocessing layer
-
-        Returns:
-            list: list of encoded features
-        """
-        return [self.encoder.encode(all_inputs[k], feature, dataset)\
-            for (k, feature) in enumerate(features)]
-
-    def encode(self, dataset, features):
-        feature_inputs = self.create_inputs(features)
-        encoded_features = self.encode_input_features(features, feature_inputs, dataset)
-        return feature_inputs, encoded_features
+        # dict would work better
+        return [tf.keras.Input(shape=(), name=feature, dtype=dtype) for feature in features]
 
 
-class PreprocessorColumnTransformer:
+class FeatureTransformer(BaseFeatureTransformer):
     """Apply column based transformation on the data
 
     Args:
         preprocessing_list : 
     """
-    def __init__(self, feature_encoder_list=None):
-        self.feature_encoder_list = feature_encoder_list
-        
     def transform(self, dataset):
         """Apply feature encodings on supplied list
 
@@ -123,17 +39,62 @@ class PreprocessorColumnTransformer:
         """
         feature_layer_inputs = {}
         feature_encoders = []
-        for (name, preprocessor, features) in self.feature_encoder_list:
-            preprocessor = BasePreprocessingColummnTransformer(preprocessor)
-            # feature_ds = extract_feature_column(dataset, name)
-            # preprocessor.adapt(feature_ds)
-            feature_inputs, feature_encoded = preprocessor.encode(dataset, features)
+        for (name, preprocessor, features, dtype) in self.feature_encoder_list:
+            encoded_features = []
+            feature_inputs = self.create_inputs(features, dtype)
+            for k, feature_name in enumerate(features):
+                feature_ds = extract_feature_column(dataset, feature_name)
+                preprocessor.adapt(feature_ds)
+                encoded_feature = preprocessor(feature_inputs[k])
+                encoded_features.append(encoded_feature)
             feature_layer_inputs[name] = feature_inputs
-            feature_encoders.extend(feature_encoded)
+            feature_encoders.extend(encoded_features)
         return feature_layer_inputs, feature_encoders
 
 
-class PreprocessorUnionTransformer(PreprocessorColumnTransformer):
+class PipelineFeatureTransformer(BaseFeatureTransformer):
+    """
+    Preprocessing pipeline to apply multiple encoders in serie
+    """
+    def _warm_up(self, name, preprocessor, features, feature_inputs, dtype):
+        """Apply feature encodings on supplied list
+
+        Args:
+            X (pandas.DataFrame): Features Data to apply encoder on.
+
+        Returns:
+            (dict, list): Keras inputs for each feature and list of encoders
+        """
+        adapted_preprocessors = {}
+        encoded_features = {}
+        for feature_input, feature_name in zip(feature_inputs, features):
+            _preprocessor = preprocessor()
+            feature_ds = extract_feature_column(dataset, feature_name)
+            _preprocessor.adapt(feature_ds)
+            encoded_feature = _preprocessor(feature_input)
+            encoded_features[feature_name] = encoded_feature
+            adapted_preprocessors[feature_name] = _preprocessor
+        return adapted_preprocessors, encoded_features
+
+    def transform(self, dataset):
+        name, preprocessor, features, dtype = self.feature_encoder_list[0]
+        feature_inputs = self.create_inputs(features, dtype)
+        adapted_preprocessors, encoded_features = self._warm_up(name, preprocessor, features, feature_inputs, dtype)
+        feature_layer_inputs = {}
+        feature_encoders = []
+        for (name, preprocessor, features, dtype) in self.feature_encoder_list[1:]:
+            for feature_name in features:
+                _preprocessor = preprocessor()
+                feature_ds = extract_feature_column(dataset, feature_name)
+                feature_ds = feature_ds.map(adapted_preprocessors[feature_name])
+                _preprocessor.adapt(feature_ds)
+                encoded_feature = _preprocessor(encoded_features[feature_name])
+                adapted_preprocessors[feature_name] = _preprocessor
+                encoded_features[feature_name] = encoded_feature
+        return feature_inputs, encoded_features
+
+
+class FeatureUnionTransformer(FeatureTransformer):
     """Apply column based preprocessing on the data
 
     Args:
@@ -172,7 +133,10 @@ if __name__ == '__main__':
     raw_labels = pandas.read_csv("moa/data/lish-moa/train_targets_scored.csv").drop('sig_id', axis=1)
 
     data_types = train_data_features.dtypes
-    categorical_features = ['cp_type', 'cp_dose', 'cp_time']
+    categorical_features = ['cp_type',
+                            'cp_dose', 
+                            #'cp_time'
+                            ]
     numerical_features = data_types[data_types=='float64'].index.tolist()
     numerical_features_gene = [feature for feature in numerical_features if 'g' in feature]
     numerical_features_cell = [feature for feature in numerical_features if 'c' in feature]
@@ -180,17 +144,28 @@ if __name__ == '__main__':
     from easyflow.data import TFDataTransformer
     dataset = TFDataTransformer().transform(train_data_features,
                                             raw_labels).batch(512)
+
+
+    # pipeline_steps = [
+    #                   ('indexer', StringIndexer()),
+    #                   ('category_encoder', CategoryEncoding())
+    # ]
+    # categorical_pipeline = Pipeline()
+
     feature_encoder_list = [
                             # ('numeric_gene_encoder', Normalization(), numerical_features_gene[:5]),
-                            #('numeric_cell_encoder', Normalization(), numerical_features_cell[:5]),
-                            ('categorical_encoder', StringLookup(), categorical_features)
+                            # ('numeric_cell_encoder', Normalization(), numerical_features_cell[:2], "float32"),
+                            ('string_encoder', StringLookup, categorical_features, "string"),
+                            ('categorical_encoder', CategoryEncoding, categorical_features, "float32"),
                             ]
-    preprocessor = PreprocessorUnionTransformer(feature_encoder_list)
-    feature_layer_inputs, feature_encoders = preprocessor.transform(dataset)
-
+    # preprocessor = PreprocessorUnionTransformer(feature_encoder_list)
+    pipeline = PipelineFeatureTransformer(feature_encoder_list)
+    feature_layer_inputs, feature_encoders = pipeline.transform(dataset)
+    feature_encoders = [v for v in feature_encoders.values()]
+    feature_encoders = tf.keras.layers.concatenate(feature_encoders)
     features = tf.keras.layers.Dense(10)(feature_encoders)
     outputs = tf.keras.layers.Dense(206, activation='sigmoid')(features)
-    model = tf.keras.Model(inputs=[v for v in feature_layer_inputs.values()], outputs=outputs)
+    model = tf.keras.Model(inputs=feature_layer_inputs, outputs=outputs)
     model.compile(
         optimizer=tf.keras.optimizers.Adam(),
         loss=tf.keras.losses.BinaryCrossentropy(),
