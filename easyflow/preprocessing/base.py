@@ -62,7 +62,7 @@ class BaseFeatureTransformer:
             encoded_feature = _preprocessor(feature_input)
             encoded_features[feature_name] = encoded_feature
             self.adapted_preprocessors[feature_name] = _preprocessor
-        return self.adapted_preprocessors, encoded_features
+        return encoded_features
 
     def __len__(self):
         return len(self.feature_encoder_list)

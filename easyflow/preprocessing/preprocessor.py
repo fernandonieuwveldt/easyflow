@@ -20,8 +20,7 @@ class FeatureTransformer(BaseFeatureTransformer):
         feature_encoders = {}
         for (name, preprocessor, features, dtype) in self.feature_encoder_list:
             feature_inputs = self.create_inputs(features, dtype)
-            adapted_preprocessors, encoded_features = \
-            self._warm_up(dataset, preprocessor, features, feature_inputs)
+            encoded_features = self._warm_up(dataset, preprocessor, features, feature_inputs)
             feature_layer_inputs.extend(feature_inputs)
             feature_encoders.update(encoded_features)
         return feature_layer_inputs, feature_encoders
@@ -43,10 +42,9 @@ class PipelineFeatureTransformer(BaseFeatureTransformer):
         name, preprocessor, features, dtype = self.feature_encoder_list[0]
         feature_inputs = self.create_inputs(features, dtype)
         # TODO: feature_inputs and encoded_features should be of the same type
-        self.adapted_preprocessors, encoded_features = self._warm_up(dataset, preprocessor, features, feature_inputs)
+        encoded_features = self._warm_up(dataset, preprocessor, features, feature_inputs)
         for (name, preprocessor, features, dtype) in self.feature_encoder_list[1:]:
-            adapted_preprocessors, encoded_features = \
-            self._warm_up(dataset, preprocessor, features, [v for v in encoded_features.values()])
+            encoded_features = self._warm_up(dataset, preprocessor, features, [v for v in encoded_features.values()])
         return feature_inputs, encoded_features
 
 
