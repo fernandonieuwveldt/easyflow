@@ -15,11 +15,11 @@ class FeatureTransformer(BaseFeatureTransformer):
         Returns:
             (list, list): Keras inputs for each feature and list of encoders
         """
-        name, preprocessor, features, dtype = self.feature_encoder_list[0]
+        name, preprocessor, features = self.feature_encoder_list[0]
         feature_layer_inputs = []
         feature_encoders = {}
-        for (name, preprocessor, features, dtype) in self.feature_encoder_list:
-            feature_inputs = self.create_inputs(features, dtype)
+        for (name, preprocessor, features) in self.feature_encoder_list:
+            feature_inputs = self.create_inputs(features, preprocessor().dtype)
             encoded_features = self._warm_up(dataset, preprocessor, features, feature_inputs)
             feature_layer_inputs.extend(feature_inputs)
             feature_encoders.update(encoded_features)
@@ -39,11 +39,11 @@ class PipelineFeatureTransformer(BaseFeatureTransformer):
         Returns:
             (list, list): Keras inputs for each feature and list of encoders
         """
-        name, preprocessor, features, dtype = self.feature_encoder_list[0]
-        feature_inputs = self.create_inputs(features, dtype)
+        name, preprocessor, features = self.feature_encoder_list[0]
+        feature_inputs = self.create_inputs(features, preprocessor().dtype)
         # TODO: feature_inputs and encoded_features should be of the same type
         encoded_features = self._warm_up(dataset, preprocessor, features, feature_inputs)
-        for (name, preprocessor, features, dtype) in self.feature_encoder_list[1:]:
+        for (name, preprocessor, features) in self.feature_encoder_list[1:]:
             encoded_features = self._warm_up(dataset, preprocessor, features, [v for v in encoded_features.values()])
         return feature_inputs, encoded_features
 
@@ -86,5 +86,7 @@ class UnionTransformer(Transformer):
             (dict, tf.keras.layer): Keras inputs for each feature and concatenated layer
         """
         feature_layer_inputs, feature_encoders = super().transform(X)
-        # flatten (or taking the union) of feature encoders 
-        return feature_layer_inputs, tf.keras.layers.concatenate(feature_encoders)
+        # flatten (or taking the union) of feature encoders
+        if len(feature_encoders) > 1:
+            return feature_layer_inputs, tf.keras.layers.concatenate(feature_encoders)
+        return feature_layer_inputs, feature_encoders.pop()

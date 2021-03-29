@@ -5,6 +5,7 @@ import tensorflow as tf
 
 
 def one2one_func(x):
+    """helper method to apply one to one preprocessor"""
     return x
 
 
