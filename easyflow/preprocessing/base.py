@@ -15,7 +15,7 @@ def extract_feature_column(dataset, name):
     return dataset
 
 
-class BaseFeatureTransformer:
+class BaseEncoder:
     """Apply column based transformation on the data
 
     Args:
@@ -27,11 +27,11 @@ class BaseFeatureTransformer:
         self.adapted_preprocessors = {feature_name: one2one_func for feature_name in features}
 
     @abstractmethod
-    def transform(self, dataset):
-        """Apply feature encodings on supplied list
+    def encode(self, dataset):
+        """Apply feature encodings on supplied feature encoding list
 
         Args:
-            X (tf.data.Dataset): Features Data to apply encoder on.
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
 
         Returns:
             (list, list): Keras inputs for each feature and list of encoders
@@ -45,7 +45,7 @@ class BaseFeatureTransformer:
         """
         return [tf.keras.Input(shape=(), name=feature, dtype=dtype) for feature in features]
 
-    def _warm_up(self, dataset, preprocessor, features, feature_inputs):
+    def _encode_one(self, dataset, preprocessor, features, feature_inputs):
         """Apply feature encodings on supplied list
 
         Args:

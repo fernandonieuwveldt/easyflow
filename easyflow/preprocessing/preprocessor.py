@@ -1,40 +1,41 @@
 import tensorflow as tf
 
-from .base import BaseFeatureTransformer
+from .base import BaseEncoder
 from .base import extract_feature_column
 
 
-class FeatureTransformer(BaseFeatureTransformer):
-
-    def transform(self, dataset):
-        """Apply feature encodings on supplied list
+class Encoder(BaseEncoder):
+    """
+    Preprocess each feature based on specified preprocessing layer contained in feature_encoder_list
+    """
+    def encode(self, dataset):
+        """Apply feature encodings on supplied feature encoding list
 
         Args:
-            X (tf.data.DataF): Features Data to apply encoder on.
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
 
         Returns:
             (list, list): Keras inputs for each feature and list of encoders
         """
-        name, preprocessor, features = self.feature_encoder_list[0]
         feature_layer_inputs = []
         feature_encoders = {}
         for (name, preprocessor, features) in self.feature_encoder_list:
             feature_inputs = self.create_inputs(features, preprocessor().dtype)
-            encoded_features = self._warm_up(dataset, preprocessor, features, feature_inputs)
+            encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
             feature_layer_inputs.extend(feature_inputs)
             feature_encoders.update(encoded_features)
         return feature_layer_inputs, feature_encoders
 
 
-class PipelineFeatureTransformer(BaseFeatureTransformer):
+class SequentialEncoder(BaseEncoder):
     """
     Preprocessing pipeline to apply multiple encoders in serie
     """
-    def transform(self, dataset):
-        """Apply feature encodings on supplied list
+    def encode(self, dataset):
+        """Apply feature encodings on supplied feature encoding list
 
         Args:
-            X (tf.data.DataF): Features Data to apply encoder on.
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
 
         Returns:
             (list, list): Keras inputs for each feature and list of encoders
@@ -42,32 +43,41 @@ class PipelineFeatureTransformer(BaseFeatureTransformer):
         name, preprocessor, features = self.feature_encoder_list[0]
         feature_inputs = self.create_inputs(features, preprocessor().dtype)
         # TODO: feature_inputs and encoded_features should be of the same type
-        encoded_features = self._warm_up(dataset, preprocessor, features, feature_inputs)
+        encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
         for (name, preprocessor, features) in self.feature_encoder_list[1:]:
-            encoded_features = self._warm_up(dataset, preprocessor, features, [v for v in encoded_features.values()])
+            encoded_features = self._encode_one(dataset, preprocessor, features, [v for v in encoded_features.values()])
         return feature_inputs, encoded_features
 
 
-class Transformer:
+class Pipeline:
     """
-    Main interface for transforming features.
+    Main interface for transforming features. Apply feature encoder list which can contain both 
+    Encoder and SequentialEncoder object types
+
+    Args:
+        feature_encoder_list : List of encoders of the form: ('name', encoder type, list of features)
     """
     def __init__(self, feature_encoder_list=None):
         self.feature_encoder_list = feature_encoder_list
 
-    def transform(self, dataset):
-        """
-        Apply feature encoder list.
+    def encode(self, dataset):
+        """Apply feature encodings on supplied feature encoding list
+
+        Args:
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
+
+        Returns:
+            (list, list): Keras inputs for each feature and list of encoders
         """
         all_feature_inputs, all_feature_encoders = [], {}
         for step in self.feature_encoder_list:
-            feature_inputs, feature_encoders = step.transform(dataset)
+            feature_inputs, feature_encoders = step.encode(dataset)
             all_feature_inputs.extend(feature_inputs)
             all_feature_encoders.update(feature_encoders)
         return all_feature_inputs, [fe for fe in all_feature_encoders.values()]
 
 
-class UnionTransformer(Transformer):
+class FeatureUnion(Pipeline):
     """Apply column based preprocessing on the data
 
     Args:
@@ -76,7 +86,7 @@ class UnionTransformer(Transformer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def transform(self, X):
+    def encode(self, X):
         """Join features. If more flexibility and customization is needed use PreprocessorColumnTransformer.
 
         Args:
@@ -85,7 +95,7 @@ class UnionTransformer(Transformer):
         Returns:
             (dict, tf.keras.layer): Keras inputs for each feature and concatenated layer
         """
-        feature_layer_inputs, feature_encoders = super().transform(X)
+        feature_layer_inputs, feature_encoders = super().encode(X)
         # flatten (or taking the union) of feature encoders
         if len(feature_encoders) > 1:
             return feature_layer_inputs, tf.keras.layers.concatenate(feature_encoders)
