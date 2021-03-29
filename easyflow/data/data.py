@@ -6,7 +6,7 @@ import pandas
 import tensorflow as tf
 
 
-class TFDataTransformer:
+class TensorflowDataMapper:
     """Transform pandas data frame to tensorflow data set
     """
     def __init__(self):
@@ -21,11 +21,12 @@ class TFDataTransformer:
         """
         total_samples = min(1024, len(data_frame_features))
         if data_frame_labels is not None:
-            return tf.data.Dataset.from_tensor_slices((dict(data_frame_features), data_frame_labels.values)).shuffle(total_samples)
+            return tf.data.Dataset.from_tensor_slices((dict(data_frame_features), data_frame_labels.values))\
+                                  .shuffle(total_samples)
         else:
             return tf.data.Dataset.from_tensor_slices(dict(data_frame_features))
 
-    def transform(self, data_frame_features=None, data_frame_labels=None):
+    def map(self, data_frame_features=None, data_frame_labels=None):
         """transform data
 
         Args:
@@ -33,3 +34,18 @@ class TFDataTransformer:
             data_frame_labels (pandas.DataFrame): Target Data
         """
         return self.data_frame_to_dataset(data_frame_features, data_frame_labels)
+
+    def split_data_set(self, dataset=None, val_split_fraction=0.25):
+        """Split data for training and validation
+
+        Args:
+            features (tf.data.Dataset): Dataset to split into training and validation
+        
+        Returns:
+            (tf.data.Dataset, tf.data.Dataset): train and validation datasets
+        """
+        rows = dataset.cardinality().numpy()
+        training_size = int((1 - val_split_fraction) * rows)
+        train_data_set = dataset.take(training_size)
+        val_data_set = dataset.skip(training_size)
+        return train_data_set, val_data_set

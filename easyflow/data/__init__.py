@@ -1,1 +1,1 @@
-from .data import TFDataTransformer
+from .data import TensorflowDataMapper
