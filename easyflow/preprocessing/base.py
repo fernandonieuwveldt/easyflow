@@ -25,7 +25,7 @@ class BaseEncoder:
     """
     def __init__(self, feature_encoder_list=None):
         self.feature_encoder_list = feature_encoder_list
-        self.check_input()
+        self.check_and_map()
         features = self.feature_encoder_list[0][2]
         self.adapted_preprocessors = {feature_name: one2one_func for feature_name in features}
 
@@ -40,7 +40,9 @@ class BaseEncoder:
             (list, list): Keras inputs for each feature and list of encoders
         """
 
-    def check_input(self):
+    def check_and_map(self):
+        """Check and Map input if any of the preprocessors are None, i.e. use as is
+        """
         for k, (name, preprocessor, features) in enumerate(self.feature_encoder_list):
             self.feature_encoder_list[k] = (name, preprocessor or IdentityLayer, features)
 

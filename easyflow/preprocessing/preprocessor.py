@@ -97,7 +97,7 @@ class FeatureUnion(Pipeline):
         Returns:
             (dict, tf.keras.layer): Keras inputs for each feature and concatenated layer
         """
-        feature_layer_inputs, feature_encoders = super().encode(X)
+        feature_layer_inputs, feature_encoders = super(FeatureUnion, self).encode(X)
         # flatten (or taking the union) of feature encoders
         if len(feature_encoders) > 1:
             return feature_layer_inputs, tf.keras.layers.concatenate(feature_encoders)

@@ -5,7 +5,7 @@ import tensorflow as tf
 
 
 class IdentityLayer(PreprocessingLayer):
-    """Helper class to apply on features where no preprocessing as needed and use as is
+    """Helper class to apply no preprocessing and use feature as is
     """
     def call(self, inputs):
         return tf.keras.layers.Reshape((1, ))(inputs)
