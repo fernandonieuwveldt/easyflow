@@ -1,7 +1,8 @@
 """base classes for stateful preprocessing layers"""
 from abc import ABC, abstractmethod
-
 import tensorflow as tf
+
+from .custom import IdentityLayer
 
 
 def one2one_func(x):
@@ -23,6 +24,7 @@ class BaseEncoder:
     """
     def __init__(self, feature_encoder_list=None):
         self.feature_encoder_list = feature_encoder_list
+        self.check_input()
         features = self.feature_encoder_list[0][2]
         self.adapted_preprocessors = {feature_name: one2one_func for feature_name in features}
 
@@ -36,6 +38,10 @@ class BaseEncoder:
         Returns:
             (list, list): Keras inputs for each feature and list of encoders
         """
+
+    def check_input(self):
+        for k, (name, preprocessor, features) in enumerate(self.feature_encoder_list):
+            self.feature_encoder_list[k] = (name, preprocessor or IdentityLayer, features)
 
     def create_inputs(self, features, dtype):
         """Create inputs for Keras Model
