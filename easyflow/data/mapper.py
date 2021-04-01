@@ -19,12 +19,9 @@ class TensorflowDataMapper:
             data_frame_features (pandas.DataFrame): Features Data.
             data_frame_labels (pandas.DataFrame): Target Data
         """
-        total_samples = min(1024, len(data_frame_features))
         if data_frame_labels is not None:
-            return tf.data.Dataset.from_tensor_slices((dict(data_frame_features), data_frame_labels.values))\
-                                  .shuffle(total_samples)
-        else:
-            return tf.data.Dataset.from_tensor_slices(dict(data_frame_features))
+            return tf.data.Dataset.from_tensor_slices((dict(data_frame_features), data_frame_labels.values))
+        return tf.data.Dataset.from_tensor_slices(dict(data_frame_features))
 
     def map(self, data_frame_features=None, data_frame_labels=None):
         """map pandas dataframe to tf.data.Dataset
@@ -45,6 +42,7 @@ class TensorflowDataMapper:
             (tf.data.Dataset, tf.data.Dataset): train and validation datasets
         """
         rows = dataset.cardinality().numpy()
+        dataset = dataset.shuffle(rows)
         training_size = int((1 - val_split_fraction) * rows)
         train_data_set = dataset.take(training_size)
         val_data_set = dataset.skip(training_size)

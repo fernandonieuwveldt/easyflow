@@ -13,7 +13,7 @@ class CategoricalFeatureEncoder(BaseFeatureColumnEncoder):
     def __init__(self):
         pass
 
-    def encode(self, X=None, features=None):
+    def encode(self, dataset=None, features=None):
         """Encoding features as one hot encoded with tensorflow feature columns
 
         Args:
@@ -27,7 +27,11 @@ class CategoricalFeatureEncoder(BaseFeatureColumnEncoder):
 
         for feature in features:
             categorical_inputs[feature] = tf.keras.Input(shape=(1,), name=feature, dtype=tf.string)
-            feature_vocab_list[feature] = tf.feature_column.categorical_column_with_vocabulary_list(feature, X[feature].unique().tolist())
+            feature_ds = dataset.map(lambda x, y: x[feature])\
+                                .apply(tf.data.experimental.unique())\
+                                .as_numpy_iterator()
+            uniq_vocab = list(feature_ds)
+            feature_vocab_list[feature] = tf.feature_column.categorical_column_with_vocabulary_list(feature, uniq_vocab)
             feature_encoders[feature] = tf.feature_column.indicator_column(feature_vocab_list[feature])
         return categorical_inputs, [feature for _, feature in feature_encoders.items()]
 
@@ -43,7 +47,7 @@ class EmbeddingFeatureEncoder(BaseFeatureColumnEncoder):
         self.embedding_space_factor = embedding_space_factor
         self.max_dimension = max_dimension
 
-    def encode(self, X=None, features=None):
+    def encode(self, dataset=None, features=None):
         """Encoding features as Embeddings with tensorflow feature columns
 
         Args:
@@ -57,7 +61,10 @@ class EmbeddingFeatureEncoder(BaseFeatureColumnEncoder):
 
         for feature in features:
             embedding_inputs[feature] = tf.keras.Input(shape=(1,), name=feature, dtype=tf.string)
-            uniq_vocab = X[feature].unique().tolist()
+            feature_ds = dataset.map(lambda x, y: x[feature])\
+                                .apply(tf.data.experimental.unique())\
+                                .as_numpy_iterator()
+            uniq_vocab = list(feature_ds)
             feature_vocab_list[feature] = tf.feature_column.categorical_column_with_vocabulary_list(feature, uniq_vocab)
             feature_encoders[feature] = tf.feature_column.embedding_column(feature_vocab_list[feature],
                                                                            initializer=self.initializer,
