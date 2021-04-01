@@ -9,7 +9,7 @@ setup(
     version="0.0.0",
     author="Fernando Nieuwveldt",
     author_email="fdnieuwveldt@gmail.com",
-    description="A package containing easy tensorflow model building",
+    description="An interface containing easy tensorflow model building blocks",
     long_description=readme,
     url="https://github.com/fernandonieuwveldt/easyflow",
     packages=find_packages(),

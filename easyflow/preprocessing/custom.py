@@ -4,7 +4,7 @@ from tensorflow.python.keras.engine.base_preprocessing_layer import Preprocessin
 import tensorflow as tf
 
 
-class IdentityLayer(PreprocessingLayer):
+class IdentityPreprocessingLayer(PreprocessingLayer):
     """Helper class to apply no preprocessing and use feature as is
     """
     def call(self, inputs):

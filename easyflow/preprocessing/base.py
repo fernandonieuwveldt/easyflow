@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 import tensorflow as tf
 
-from .custom import IdentityLayer
+from .custom import IdentityPreprocessingLayer
 
 
 def one2one_func(x):
@@ -44,7 +44,7 @@ class BaseEncoder:
         """Check and Map input if any of the preprocessors are None, i.e. use as is
         """
         for k, (name, preprocessor, features) in enumerate(self.feature_encoder_list):
-            self.feature_encoder_list[k] = (name, preprocessor or IdentityLayer, features)
+            self.feature_encoder_list[k] = (name, preprocessor or IdentityPreprocessingLayer, features)
 
     def create_inputs(self, features, dtype):
         """Create list of keras Inputs
