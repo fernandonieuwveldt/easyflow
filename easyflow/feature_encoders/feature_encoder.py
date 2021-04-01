@@ -17,7 +17,7 @@ class CategoricalFeatureEncoder(BaseFeatureColumnEncoder):
         """Encoding features as one hot encoded with tensorflow feature columns
 
         Args:
-            X (pandas.DataFrame): Features Data to apply encoder on.
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
             features (list): list of feature names
 
         Returns:
@@ -51,7 +51,7 @@ class EmbeddingFeatureEncoder(BaseFeatureColumnEncoder):
         """Encoding features as Embeddings with tensorflow feature columns
 
         Args:
-            X (pandas.DataFrame): Features Data to apply encoder on.
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
             features (list): list of feature names
 
         Returns:
@@ -79,11 +79,11 @@ class NumericalFeatureEncoder(BaseFeatureColumnEncoder):
     def __init__(self):
         pass
 
-    def encode(self, X=None, features=None):
+    def encode(self, dataset=None, features=None):
         """Encoding numerical type features with tensorflow feature columns
 
         Args:
-            X (pandas.DataFrame): Features Data to apply encoder on.
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
             features (list): list of feature names
 
         Returns:
