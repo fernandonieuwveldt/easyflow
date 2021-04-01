@@ -17,7 +17,7 @@ class Encoder(BaseEncoder):
             dataset (tf.data.Dataset): Features Data to apply encoder on.
 
         Returns:
-            (list, list): Keras inputs for each feature and list of encoders
+            (list, dict): Keras inputs for each feature and dict of encoders
         """
         feature_layer_inputs = []
         feature_encoders = {}
@@ -40,12 +40,16 @@ class SequentialEncoder(BaseEncoder):
             dataset (tf.data.Dataset): Features Data to apply encoder on.
 
         Returns:
-            (list, list): Keras inputs for each feature and list of encoders
+            (list, dict): Keras inputs for each feature and dict of encoders
         """
         name, preprocessor, features = self.feature_encoder_list[0]
         feature_inputs = self.create_inputs(features, preprocessor().dtype)
         # TODO: feature_inputs and encoded_features should be of the same type
         encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
+        if len(self.feature_encoder_list) == 1:
+            # SequentialEncoder use case is for multiple encoders applied on the same features
+            # It should never have only one encoder. Adding this step for robustness
+            return feature_inputs, encoded_features
         for (name, preprocessor, features) in self.feature_encoder_list[1:]:
             encoded_features = self._encode_one(dataset, preprocessor, features, [v for v in encoded_features.values()])
         return feature_inputs, encoded_features
@@ -53,7 +57,7 @@ class SequentialEncoder(BaseEncoder):
 
 class Pipeline:
     """
-    Main interface for transforming features. Apply feature encoder list which can contain both 
+    Main interface for transforming features. Apply feature encoder list which can contain both
     Encoder and SequentialEncoder object types
 
     Args:
@@ -69,7 +73,7 @@ class Pipeline:
             dataset (tf.data.Dataset): Features Data to apply encoder on.
 
         Returns:
-            (list, list): Keras inputs for each feature and list of encoders
+            (list, dict): Keras inputs for each feature and dict of encoders
         """
         all_feature_inputs, all_feature_encoders = [], {}
         for step in self.feature_encoder_list:
@@ -80,7 +84,7 @@ class Pipeline:
 
 
 class FeatureUnion(Pipeline):
-    """Apply column based preprocessing on the data
+    """Apply column based preprocessing on the data and combine features with a concat layer.
 
     Args:
         feature_encoder_list : List of encoders of the form: ('name', encoder type, list of features)
@@ -88,16 +92,16 @@ class FeatureUnion(Pipeline):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def encode(self, X):
+    def encode(self, dataset):
         """Join features. If more flexibility and customization is needed use PreprocessorColumnTransformer.
 
         Args:
-            X (pandas.DataFrame): Features Data to apply encoder on.
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
 
         Returns:
-            (dict, tf.keras.layer): Keras inputs for each feature and concatenated layer
+            (list, tf.keras.layer): Keras inputs for each feature and concatenated layer
         """
-        feature_layer_inputs, feature_encoders = super(FeatureUnion, self).encode(X)
+        feature_layer_inputs, feature_encoders = super(FeatureUnion, self).encode(dataset)
         # flatten (or taking the union) of feature encoders
         if len(feature_encoders) > 1:
             return feature_layer_inputs, tf.keras.layers.concatenate(feature_encoders)

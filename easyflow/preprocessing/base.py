@@ -21,7 +21,7 @@ class BaseEncoder:
     """Apply column based transformation on the data
 
     Args:
-        feature_encoder_list : 
+        feature_encoder_list : List of encoders of the form: ('name', encoder type, list of features)
     """
     def __init__(self, feature_encoder_list=None):
         self.feature_encoder_list = feature_encoder_list
@@ -37,7 +37,7 @@ class BaseEncoder:
             dataset (tf.data.Dataset): Features Data to apply encoder on.
 
         Returns:
-            (list, list): Keras inputs for each feature and list of encoders
+            (list, dict): Keras inputs for each feature and dict of encoders
         """
 
     def check_and_map(self):
@@ -47,7 +47,7 @@ class BaseEncoder:
             self.feature_encoder_list[k] = (name, preprocessor or IdentityLayer, features)
 
     def create_inputs(self, features, dtype):
-        """Create inputs for Keras Model
+        """Create list of keras Inputs
 
         Returns:
             list: list of keras inputs

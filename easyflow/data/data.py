@@ -27,7 +27,7 @@ class TensorflowDataMapper:
             return tf.data.Dataset.from_tensor_slices(dict(data_frame_features))
 
     def map(self, data_frame_features=None, data_frame_labels=None):
-        """transform data
+        """map pandas dataframe to tf.data.Dataset
 
         Args:
             data_frame_features (pandas.DataFrame): Features Data.
