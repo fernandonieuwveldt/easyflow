@@ -3,15 +3,36 @@ Easy Tensorflow:
 An interface containing easy tensorflow model building blocks and feature encoding pipelines
 
 Model file structure:
-
-
+```bash
+├── easyflow
+│   ├── __init__.py
+│   ├── data
+│   │   ├── __init__.py
+│   │   ├── mapper.py
+│   ├── feature_encoders
+│   │   ├── base.py
+│   │   ├── feature_encoder.py
+│   │   ├── __init__.py
+│   │   └── transformer.py
+│   ├── preprocessing
+│   │   ├── base.py
+│   │   ├── custom.py
+│   │   ├── __init__.py
+│   │   ├── preprocessor.py
+├── notebooks
+│   ├── feature_column_example.ipynb
+│   └── preprocessing_example.ipynb
+├── README.md
+├── requirements.txt
+└── setup.py
+```
 
 ## To install package:
 ```bash
 pip install easy-tensorflow
 ```
 
-# Preprocessing Encoder, Pipeline, SequentialEncoder and FeatureUnion example
+# Example 1: Preprocessing Encoder, Pipeline, SequentialEncoder and FeatureUnion example
 The easyflow.preprocessing module contains functionality similar to what sklearn does with its Pipeline, FeatureUnion and ColumnTransformer does. Full example also in a notebook: easyflow/notebooks/preprocessing_example.ipynb
 
 ```python
@@ -31,7 +52,6 @@ Use the TensorflowDataMapper class to map pandas data frame to a tf.data.Dataset
 ```python
 file_url = "http://storage.googleapis.com/download.tensorflow.org/data/heart.csv"
 dataframe = pd.read_csv(file_url)
-dataframe = dataframe.copy()
 labels = dataframe.pop("target")
 
 batch_size = 32
@@ -70,7 +90,7 @@ all_feature_inputs, preprocessing_layer = encoder.encode(dataset)
 history=model.fit(train_data_set, validation_data=val_data_set, epochs=10)
 ```
 
-# Model building Pipeline using easyflow feature_encoders module
+# Example 2: Model building Pipeline using easyflow feature_encoders module
 This module is a fusion between keras layers and tensorflow feature columns. Full example also in a notebook: easyflow/notebooks/feature_column_example.ipynb
 
 ```python
