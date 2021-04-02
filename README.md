@@ -1,16 +1,20 @@
 Easy Tensorflow:
 
-An interface containing easy tensorflow model building blocks and feature pipelines
+An interface containing easy tensorflow model building blocks and feature encoding pipelines
+
+Model file structure:
+
+
 
 ## To install package:
-```
+```bash
 pip install easy-tensorflow
 ```
 
 # Preprocessing Encoder, Pipeline, SequentialEncoder and FeatureUnion example
 The easyflow.preprocessing module contains functionality similar to what sklearn does with its Pipeline, FeatureUnion and ColumnTransformer does. Full example also in a notebook: easyflow/notebooks/preprocessing_example.ipynb
 
-```
+```python
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.layers.experimental.preprocessing import Normalization, CategoryEncoding, StringLookup
@@ -24,7 +28,7 @@ from easyflow.preprocessing.custom import IdentityPreprocessingLayer
 ### Read in data and map as tf.data.Dataset
 Use the TensorflowDataMapper class to map pandas data frame to a tf.data.Dataset type.
 
-```
+```python
 file_url = "http://storage.googleapis.com/download.tensorflow.org/data/heart.csv"
 dataframe = pd.read_csv(file_url)
 dataframe = dataframe.copy()
@@ -39,7 +43,7 @@ val_data_set = val_data_set.batch(batch_size)
 ```
 
 ### Set constants
-```
+```python
 NUMERICAL_FEATURES = ['age', 'trestbps', 'chol', 'thalach', 'oldpeak', 'slope']
 CATEGORICAL_FEATURES = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'ca']
 # thal is represented as a string
@@ -49,7 +53,7 @@ STRING_CATEGORICAL_FEATURES = ['thal']
 ### Setup Preprocessing layer using FeatureUnion
 Use Encoder and SequentialEncoder to preprocess features by putting everything in a FeatureUnion object.
 
-```
+```python
 feature_encoder_list = [
                         Encoder([('numeric_encoder', Normalization, NUMERICAL_FEATURES)]),
                         Encoder([('categorical_encoder', CategoryEncoding, CATEGORICAL_FEATURES)]),
@@ -62,14 +66,14 @@ encoder = FeatureUnion(feature_encoder_list)
 all_feature_inputs, preprocessing_layer = encoder.encode(dataset)
 ```
 
-```
+```python
 history=model.fit(train_data_set, validation_data=val_data_set, epochs=10)
 ```
 
 # Model building Pipeline using easyflow feature_encoders module
 This module is a fusion between keras layers and tensorflow feature columns. Full example also in a notebook: easyflow/notebooks/feature_column_example.ipynb
 
-```
+```python
 import pandas as pd
 import tensorflow as tf
 
@@ -80,7 +84,7 @@ from easyflow.feature_encoders.feature_encoder import NumericalFeatureEncoder, E
 ```
 
 ### Load data
-```
+```python
 CSV_HEADER = [
     "age",
     "workclass",
@@ -113,7 +117,7 @@ print(f"Train dataset shape: {data_frame.shape}")
 
 ### Map data frame to tf.data.Dataset
 
-```
+```python
 batch_size = 256
 dataset_mapper = TensorflowDataMapper() 
 dataset = dataset_mapper.map(data_frame, labels_binary)
@@ -124,7 +128,7 @@ val_data_set = val_data_set.batch(batch_size)
 ```
 
 ### Set up the feature encoding list
-```
+```python
 NUMERIC_FEATURE_NAMES = [
     "age",
     "education_num",
@@ -153,11 +157,11 @@ feature_encoder_list = [('numerical_features', NumericalFeatureEncoder(), NUMERI
 ### Setting up feature layer and feature encoders
 There are two main column transformer classes namely FeatureColumnTransformer and FeatureUnionTransformer. For this example we are going to build a Wide and Deep model architecture. So we will be using the FeatureColumnTransformer since it gives us more flexibility. FeatureUnionTransformer concatenates all the features in the input layer
 
-```
+```python
 feature_layer_inputs, feature_encoders =  FeatureColumnTransformer(feature_encoder_list).transform(train_data_set)
 ```
 
-```
+```python
 deep_features = feature_encoders['numerical_features']+\
                 feature_encoders['categorical_features']+\
                 feature_encoders['embedding_features_deep']
@@ -166,7 +170,7 @@ wide_features = feature_encoders['embedding_features_wide']
 ```
 
 ###  Set up Wide and Deep model architecture
-```
+```python
 deep = tf.keras.layers.DenseFeatures(deep_features)(feature_layer_inputs)
 deep = tf.keras.layers.BatchNormalization()(deep)
 
@@ -185,6 +189,6 @@ model.compile(loss=tf.keras.losses.BinaryCrossentropy(label_smoothing=0.0),
 ```
 
 Fit model
-```
+```python
 model.fit(train_data_set, validation_data=val_data_set, epochs=10)
 ```
