@@ -33,7 +33,7 @@ pip install easy-tensorflow
 ```
 
 # Example 1: Preprocessing Encoder, Pipeline, SequentialEncoder and FeatureUnion example
-The easyflow.preprocessing module contains functionality similar to what sklearn does with its Pipeline, FeatureUnion and ColumnTransformer does. Full example also in a notebook: easyflow/notebooks/preprocessing_example.ipynb
+The easyflow.preprocessing module contains functionality similar to what sklearn does with its Pipeline, FeatureUnion and ColumnTransformer does. Full example also in notebooks folder
 
 ```python
 import pandas as pd
@@ -86,12 +86,28 @@ encoder = FeatureUnion(feature_encoder_list)
 all_feature_inputs, preprocessing_layer = encoder.encode(dataset)
 ```
 
+### Set up network
+```python
+# setup simple network
+x = tf.keras.layers.Dense(128, activation="relu")(preprocessing_layer)
+x = tf.keras.layers.Dropout(0.5)(x)
+outputs = tf.keras.layers.Dense(1, activation='sigmoid')(x)
+model = tf.keras.Model(inputs=all_feature_inputs, outputs=outputs)
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(),
+    loss=tf.keras.losses.BinaryCrossentropy(),
+    metrics=[tf.keras.metrics.BinaryAccuracy(name='accuracy'), tf.keras.metrics.AUC(name='auc')])
+
+tf.keras.utils.plot_model(model, show_shapes=True, rankdir="LR")
+```
+
+### Fit model
 ```python
 history=model.fit(train_data_set, validation_data=val_data_set, epochs=10)
 ```
 
-# Example 2: Model building Pipeline using easyflow feature_encoders module
-This module is a fusion between keras layers and tensorflow feature columns. Full example also in a notebook: easyflow/notebooks/feature_column_example.ipynb
+# Example 2: Model building Pipeline using easyflow feature encoders module
+This module is a fusion between keras layers and tensorflow feature columns.
 
 ```python
 import pandas as pd
@@ -132,7 +148,6 @@ labels_binary = 1.0 * (labels == " >50K")
 data_frame.to_csv('adult_features.csv', index=False)
 labels_binary.to_csv('adult_labels.csv', index=False)
 
-print(f"Train dataset shape: {data_frame.shape}")
 ```
 
 ### Map data frame to tf.data.Dataset
