@@ -19,9 +19,17 @@ Model file structure:
 │   │   ├── custom.py
 │   │   ├── __init__.py
 │   │   ├── preprocessor.py
+│   └── tests
+│       ├── __init__.py
+│       ├── test_data
+│       │   └── heart.csv
+│       ├── test_feature_encoders.py
+│       └── test_preprocessing.py
 ├── notebooks
 │   ├── feature_column_example.ipynb
 │   └── preprocessing_example.ipynb
+├── CHANGELOG.md
+├── MANIFEST.in
 ├── README.md
 ├── requirements.txt
 └── setup.py
@@ -43,7 +51,6 @@ from tensorflow.keras.layers.experimental.preprocessing import Normalization, Ca
 # local imports
 from easyflow.data.mapper import TensorflowDataMapper
 from easyflow.preprocessing.preprocessor import Encoder, Pipeline, SequentialEncoder, FeatureUnion
-from easyflow.preprocessing.custom import IdentityPreprocessingLayer
 ```
 
 ### Read in data and map as tf.data.Dataset
@@ -75,11 +82,11 @@ Use Encoder and SequentialEncoder to preprocess features by putting everything i
 
 ```python
 feature_encoder_list = [
-                        Encoder([('numeric_encoder', Normalization, NUMERICAL_FEATURES)]),
-                        Encoder([('categorical_encoder', CategoryEncoding, CATEGORICAL_FEATURES)]),
+                        Encoder([('numeric_encoder', Normalization(), NUMERICAL_FEATURES)]),
+                        Encoder([('categorical_encoder', CategoryEncoding(), CATEGORICAL_FEATURES)]),
                         # For feature thal we first need to run StringLookup followed by a CategoryEncoding layer
-                        SequentialEncoder([('string_encoder', StringLookup, STRING_CATEGORICAL_FEATURES),
-                                           ('categorical_encoder', CategoryEncoding, STRING_CATEGORICAL_FEATURES)])
+                        SequentialEncoder([('string_encoder', StringLookup(), STRING_CATEGORICAL_FEATURES),
+                                           ('categorical_encoder', CategoryEncoding(), STRING_CATEGORICAL_FEATURES)])
                         ]
 
 encoder = FeatureUnion(feature_encoder_list)
