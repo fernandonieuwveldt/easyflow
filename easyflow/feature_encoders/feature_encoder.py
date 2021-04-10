@@ -22,7 +22,8 @@ def get_unique_vocab(dataset=None, features=None):
 
     feature_vocab_list, categorical_inputs = {}, {}
     for feature in features:
-        categorical_inputs[feature] = tf.keras.Input(shape=(1,), name=feature, dtype=tf.string)
+        dtype = dataset._structure[0][feature].dtype
+        categorical_inputs[feature] = tf.keras.Input(shape=(1,), name=feature, dtype=dtype)
         feature_ds = dataset.map(lambda x, y: x[feature])\
                             .apply(tf.data.experimental.unique())\
                             .as_numpy_iterator()
