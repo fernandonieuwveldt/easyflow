@@ -22,7 +22,7 @@ class Encoder(BaseEncoder):
         feature_layer_inputs = []
         feature_encoders = {}
         for (name, preprocessor, features) in self.feature_encoder_list:
-            feature_inputs = self.create_inputs(features, preprocessor().dtype)
+            feature_inputs = self.create_inputs(features, preprocessor.dtype)
             encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
             feature_layer_inputs.extend(feature_inputs)
             feature_encoders.update(encoded_features)
@@ -43,7 +43,7 @@ class SequentialEncoder(BaseEncoder):
             (list, dict): Keras inputs for each feature and dict of encoders
         """
         name, preprocessor, features = self.feature_encoder_list[0]
-        feature_inputs = self.create_inputs(features, preprocessor().dtype)
+        feature_inputs = self.create_inputs(features, preprocessor.dtype)
         # TODO: feature_inputs and encoded_features should be of the same type
         encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
         if len(self.feature_encoder_list) == 1:
