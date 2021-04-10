@@ -9,24 +9,17 @@ from tensorflow.keras.layers.experimental.preprocessing import Normalization, Ca
 
 # local imports
 from easyflow.data.mapper import TensorflowDataMapper
-from easyflow.preprocessing.preprocessor import Encoder, Pipeline, SequentialEncoder, FeatureUnion
-from easyflow.preprocessing.custom import IdentityPreprocessingLayer
+from easyflow.preprocessing.preprocessor import Encoder, SequentialEncoder, FeatureUnion
 
 
 class TestPreprocessingPipelines(unittest.TestCase):
     """Test the Preprocessing module pipelines
     """
     def setUp(self):
-        file_url = "http://storage.googleapis.com/download.tensorflow.org/data/heart.csv"
-        dataframe = pd.read_csv(file_url)
-        dataframe = dataframe.copy()
+        dataframe = pd.read_csv('easyflow/tests/test_data/heart.csv')
         labels = dataframe.pop("target")
-        batch_size = 32
         dataset_mapper = TensorflowDataMapper()
-        self.dataset = dataset_mapper.map(dataframe, labels)
-        train_data_set, val_data_set = dataset_mapper.split_data_set(self.dataset)
-        self.train_data_set = train_data_set.batch(batch_size)
-        self.val_data_set = val_data_set.batch(batch_size)
+        self.dataset = dataset_mapper.map(dataframe, labels).batch(32)
 
         self.numerical_features = ['age', 'trestbps', 'chol', 'thalach', 'oldpeak', 'slope']
         self.categorical_features = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'ca']
@@ -45,7 +38,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
         """Test Feature union and model fit
         """
         encoder = FeatureUnion(self.feature_encoder_list)
-        all_feature_inputs, preprocessing_layer = encoder.encode(self.train_data_set)
+        all_feature_inputs, preprocessing_layer = encoder.encode(self.dataset)
         # setup simple network
         x = tf.keras.layers.Dense(128, activation="relu")(preprocessing_layer)
         x = tf.keras.layers.Dropout(0.5)(x)
@@ -57,8 +50,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
                     metrics=[tf.keras.metrics.BinaryAccuracy(name='accuracy'), tf.keras.metrics.AUC(name='auc')]
         )
 
-        history=model.fit(self.train_data_set, validation_data=self.val_data_set, epochs=10)
-
+        history=model.fit(self.dataset, epochs=10)
         assert len(all_feature_inputs) == 13
         # test if the model ran through all 10 epochs
         assert len(history.history['loss']) == 10
@@ -68,7 +60,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
         """
         steps_list = [
                       SequentialEncoder([('string_encoder', StringLookup(), self.string_categorical_features),
-                                        ('categorical_encoder', CategoryEncoding(), self.string_categorical_features)])
+                                         ('categorical_encoder', CategoryEncoding(), self.string_categorical_features)])
         ]
         encoder = FeatureUnion(steps_list)
         all_feature_inputs, preprocessing_layer = encoder.encode(self.dataset)
@@ -79,7 +71,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
         """
         steps_list = [
                       SequentialEncoder([('string_encoder', StringLookup(max_tokens=4), self.string_categorical_features),
-                                        ('categorical_encoder', CategoryEncoding(), self.string_categorical_features)])
+                                         ('categorical_encoder', CategoryEncoding(), self.string_categorical_features)])
         ]
         encoder = FeatureUnion(steps_list)
         all_feature_inputs, preprocessing_layer = encoder.encode(self.dataset)
