@@ -1,5 +1,4 @@
 """base classes for stateful preprocessing layers"""
-from copy import deepcopy
 from abc import ABC, abstractmethod
 import tensorflow as tf
 
