@@ -1,5 +1,5 @@
 """base classes for stateful preprocessing layers"""
-
+from copy import deepcopy
 from abc import ABC, abstractmethod
 import tensorflow as tf
 
@@ -64,8 +64,11 @@ class BaseEncoder:
             (list, list): Keras inputs for each feature and list of encoders
         """
         encoded_features = {}
-        for feature_input, feature_name in zip(feature_inputs, features):
-            _preprocessor = preprocessor()
+        # get initial preprocessing layer config 
+        config = preprocessor.get_config()
+        for k, (feature_input, feature_name) in enumerate(zip(feature_inputs, features)):
+            config.pop('name', None)
+            _preprocessor = preprocessor if k==0 else preprocessor.from_config(config)
             feature_ds = extract_feature_column(dataset, feature_name)
             feature_ds = feature_ds.map(self.adapted_preprocessors[feature_name])
             _preprocessor.adapt(feature_ds)
