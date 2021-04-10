@@ -1,3 +1,6 @@
+## VERSION 0.1.8
+* Added LICENSE
+
 ## VERSION 0.1.7
 * Added initialised preprocessing layers with args to encoder classes
 * Added unit tests and test data for preprocessing and feature encoder modules

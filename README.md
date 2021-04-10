@@ -29,6 +29,7 @@ Model file structure:
 │   ├── feature_column_example.ipynb
 │   └── preprocessing_example.ipynb
 ├── CHANGELOG.md
+├── LICENSE
 ├── MANIFEST.in
 ├── README.md
 ├── requirements.txt
