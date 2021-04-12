@@ -11,9 +11,9 @@ def one2one_func(x):
 
 
 def extract_feature_column(dataset, name):
-    dataset = dataset.map(lambda x, y: x[name])
-    dataset = dataset.map(lambda x: tf.expand_dims(x, -1))
-    return dataset
+    feature = dataset.map(lambda x, y: x[name])
+    feature = feature.map(lambda x: tf.expand_dims(x, -1))
+    return feature
 
 
 class BaseEncoder:
