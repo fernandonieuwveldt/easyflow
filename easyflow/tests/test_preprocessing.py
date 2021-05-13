@@ -8,8 +8,8 @@ import tensorflow as tf
 from tensorflow.keras.layers.experimental.preprocessing import Normalization, CategoryEncoding, StringLookup
 
 # local imports
-from easyflow.data.mapper import TensorflowDataMapper
-from easyflow.preprocessing.preprocessor import Encoder, SequentialEncoder, FeatureUnion
+from easyflow.data import TensorflowDataMapper
+from easyflow.preprocessing import Encoder, SequentialEncoder, FeatureUnion
 
 
 class TestPreprocessingPipelines(unittest.TestCase):
@@ -26,12 +26,18 @@ class TestPreprocessingPipelines(unittest.TestCase):
         # thal is represented as a string
         self.string_categorical_features = ['thal']
 
+        # self.feature_encoder_list = [
+        #                     Encoder([('numeric_encoder', Normalization(), self.numerical_features )]),
+        #                     Encoder([('categorical_encoder', CategoryEncoding(), self.categorical_features)]),
+        #                     # For feature thal we first need to run StringLookup followed by a CategoryEncoding layer
+        #                     SequentialEncoder([('string_encoder', StringLookup(), self.string_categorical_features),
+        #                                        ('categorical_encoder', CategoryEncoding(), self.string_categorical_features)])
+        #                     ]
         self.feature_encoder_list = [
-                            Encoder([('numeric_encoder', Normalization(), self.numerical_features )]),
-                            Encoder([('categorical_encoder', CategoryEncoding(), self.categorical_features)]),
+                            ('numeric_encoder', Normalization(), self.numerical_features),
+                            ('categorical_encoder', CategoryEncoding(), self.categorical_features),
                             # For feature thal we first need to run StringLookup followed by a CategoryEncoding layer
-                            SequentialEncoder([('string_encoder', StringLookup(), self.string_categorical_features),
-                                               ('categorical_encoder', CategoryEncoding(), self.string_categorical_features)])
+                            ('string_encoder', [StringLookup(), CategoryEncoding()], self.string_categorical_features)
                             ]
 
     def test_preprocessing_pipeline(self):
@@ -46,11 +52,10 @@ class TestPreprocessingPipelines(unittest.TestCase):
         """Test that if preprocessor is None, the IdentityPreprocessing layer should be applied
         """
         feature_encoder_list_none = [
-                            Encoder([('numeric_encoder', None, self.numerical_features )]),
-                            Encoder([('categorical_encoder', CategoryEncoding(), self.categorical_features)]),
+                            ('numeric_encoder', None, self.numerical_features ),
+                            ('categorical_encoder', CategoryEncoding(), self.categorical_features),
                             # For feature thal we first need to run StringLookup followed by a CategoryEncoding layer
-                            SequentialEncoder([('string_encoder', StringLookup(), self.string_categorical_features),
-                                               ('categorical_encoder', CategoryEncoding(), self.string_categorical_features)])
+                            ('string_encoder', [StringLookup(), CategoryEncoding()], self.string_categorical_features)
                             ]
 
         all_feature_inputs, history = train_model_util(self.dataset, feature_encoder_list_none)
@@ -62,19 +67,25 @@ class TestPreprocessingPipelines(unittest.TestCase):
         """Test preprocessing layers with no arguments supplied
         """
         steps_list = [
-                      SequentialEncoder([('string_encoder', StringLookup(), self.string_categorical_features),
-                                         ('categorical_encoder', CategoryEncoding(), self.string_categorical_features)])
+                      ('string_encoder', [StringLookup(), CategoryEncoding()], self.string_categorical_features)
         ]
         encoder = FeatureUnion(steps_list)
         all_feature_inputs, preprocessing_layer = encoder.encode(self.dataset)
         assert preprocessing_layer.shape[-1] == 7
 
-    def test_preprocessing_layer_with_args(self):
+    # def test_invalid_encoder(self):
+    #     """Test with invalid preprocessing layer
+    #     """
+    #     try:
+    #         Encoder([('categorical_encoder', tf.keras.layers.Dense(32), self.categorical_features)])
+    #     except TypeError as error:
+    #         self.assertTrue("All preprocessing/encoding layers should have adapt method" in str(error))
+
+    def test_encoding_validator(self):
         """Test preprocessing layers with arguments supplied
         """
         steps_list = [
-                      SequentialEncoder([('string_encoder', StringLookup(max_tokens=4), self.string_categorical_features),
-                                         ('categorical_encoder', CategoryEncoding(), self.string_categorical_features)])
+                      ('string_encoder', [StringLookup(max_tokens=4), CategoryEncoding()], self.string_categorical_features)
         ]
         encoder = FeatureUnion(steps_list)
         all_feature_inputs, preprocessing_layer = encoder.encode(self.dataset)

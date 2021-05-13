@@ -24,8 +24,9 @@ class BaseEncoder:
     """
     def __init__(self, feature_encoder_list=None):
         self.feature_encoder_list = feature_encoder_list
-        self.check_and_map()
-        features = self.feature_encoder_list[0][2]
+        features = self.feature_encoder_list[2]
+        self._check_and_map()
+        # self._validate_encoding_list()
         self.adapted_preprocessors = {feature_name: one2one_func for feature_name in features}
 
     @abstractmethod
@@ -39,11 +40,29 @@ class BaseEncoder:
             (list, dict): Keras inputs for each feature and dict of encoders
         """
 
-    def check_and_map(self):
+    def _validate_encoding_list(self):
+        """Validate that all prepocessorts has adapt method
+        """
+        import pdb
+        pdb.set_trace()
+        name, preprocessors, features = zip(*self.feature_encoder_list)
+
+        for p in preprocessors:
+            if not hasattr(p, "adapt"):
+                raise TypeError("All preprocessing/encoding layers should have adapt method"
+                                "'%s' (type %s) doesn't" % (p, type(p)))
+
+    def _check_and_map(self):
         """Check and Map input if any of the preprocessors are None, i.e. use as is
         """
-        for k, (name, preprocessor, features) in enumerate(self.feature_encoder_list):
-            self.feature_encoder_list[k] = (name, preprocessor or IdentityPreprocessingLayer(), features)
+        # import pdb
+        # pdb.set_trace()
+        # for k, (name, preprocessor, features) in enumerate(list(self.feature_encoder_list)):
+        #     self.feature_encoder_list[k] = (name, preprocessor or IdentityPreprocessingLayer(), features)
+        self.feature_encoder_list = list(self.feature_encoder_list)
+        name, preprocessor, features = self.feature_encoder_list
+        self.feature_encoder_list[1] = preprocessor or IdentityPreprocessingLayer()
+        self.feature_encoder_list = tuple(self.feature_encoder_list)
 
     def create_inputs(self, features, dtype):
         """Create list of keras Inputs
@@ -76,5 +95,12 @@ class BaseEncoder:
             self.adapted_preprocessors[feature_name] = _preprocessor
         return encoded_features
 
+    def __getitem__(self, idx):
+        return self.feature_encoder_list[idx]
+
     def __len__(self):
         return len(self.feature_encoder_list)
+
+    @property
+    def encoder_name(self):
+        return self[0][0]
