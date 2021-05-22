@@ -1,7 +1,6 @@
 """
 Transformer for tensorflow feature columns
 """
-from .feature_encoder import NumericalFeatureEncoder, CategoricalFeatureEncoder
 
 
 class FeatureColumnTransformer:

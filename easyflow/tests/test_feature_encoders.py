@@ -3,9 +3,9 @@ import pandas as pd
 import tensorflow as tf
 
 # local imports
-from easyflow.data.mapper import TensorflowDataMapper
-from easyflow.feature_encoders.transformer import FeatureUnionTransformer
-from easyflow.feature_encoders.feature_encoder import NumericalFeatureEncoder, CategoricalFeatureEncoder
+from easyflow.data import TensorflowDataMapper
+from easyflow.feature_encoders import FeatureUnionTransformer
+from easyflow.feature_encoders import NumericalFeatureEncoder, CategoricalFeatureEncoder
 
 
 class TestFeatureEncoders(unittest.TestCase):
