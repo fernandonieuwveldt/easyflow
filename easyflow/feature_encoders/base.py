@@ -22,7 +22,13 @@ class BaseFeatureColumnEncoder(ABC):
         Returns:
             (dict): Keras inputs for each feature
         """
-        return {feature: tf.keras.Input(shape=(1,), name=feature, dtype=dataset._structure[0][feature].dtype)\
+        def get_data_type(ds, feature):
+            """helper function to get dtype of feature"""
+            if len(ds.element_spec) == 2:
+                return ds._structure[0][feature].dtype
+            return ds._structure[feature].dtype
+
+        return {feature: tf.keras.Input(shape=(1,), name=feature, dtype=get_data_type(dataset, feature))\
             for feature in features}
 
     # should perhaps be a abstractmethod

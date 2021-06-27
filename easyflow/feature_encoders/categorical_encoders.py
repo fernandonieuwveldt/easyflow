@@ -20,9 +20,14 @@ def get_unique_vocabulary(dataset=None, features=None):
         # unbatch dataset
         dataset = dataset.unbatch()
 
+    if isinstance(dataset.element_spec, tuple):
+        map_func = lambda x, y: x[feature]
+    else:
+        map_func = lambda x: x[feature]
+
     feature_vocab_list = {}
     for feature in features:
-        feature_ds = dataset.map(lambda x, y: x[feature])\
+        feature_ds = dataset.map(map_func)\
                             .apply(tf.data.experimental.unique())\
                             .as_numpy_iterator()
         uniq_vocab = list(feature_ds)
@@ -52,7 +57,22 @@ class BaseCategoricalFeatureColumnEncoder(BaseFeatureColumnEncoder):
 
 class CategoricalFeatureEncoder(BaseCategoricalFeatureColumnEncoder):
     """
-    Class encodes Categorical features using tensorflow feature_columns
+    Class encodes Categorical features using tensorflow feature_columns. This is a wrapper to
+    tf.feature_column.indicator_column to conform to the BaseFeatureColumnEncoder interface and does not change the behaviour.
+
+    Examples
+    --------
+    >>> data = {'feature': ['a', 'b', 'c', 'c']}
+    >>> dataset=tf.data.Dataset.from_tensor_slices(data).batch(4)
+    >>> example_batch = next(iter(dataset))
+    >>> feature_layer = lambda feature_column, batch: tf.keras.layers.DenseFeatures(feature_column)(batch).numpy()
+    >>> encoder = CategoricalFeatureEncoder()
+    >>> encoded_feature = encoder.encode(dataset, ['feature'])
+    >>> feature_layer(encoded_feature, example_batch)
+        array([[1., 0., 0.],
+               [0., 1., 0.],
+               [0., 0., 1.],
+               [0., 0., 1.]], dtype=float32)
     """
     def __init__(self, **kwargs):
         super().__init__(feature_transformer=tf.feature_column.indicator_column, **kwargs)
@@ -60,14 +80,46 @@ class CategoricalFeatureEncoder(BaseCategoricalFeatureColumnEncoder):
 
 class EmbeddingFeatureEncoder(BaseCategoricalFeatureColumnEncoder):
     """
-    Class encodes high cardinality Categorical features(Embeddings) using tensorflow feature_columns
+    Class encodes high cardinality Categorical features(Embeddings) using tensorflow feature_columns. This is a wrapper to
+    tf.feature_column.embedding_column to conform to the BaseFeatureColumnEncoder interface and does not change the behaviour.
+
+    Examples
+    --------
+    >>> data = data = {'feature': ['a', 'b', 'c', 'c', 'c', 'c', 'd', 'd', 'd']}
+    >>> dataset=tf.data.Dataset.from_tensor_slices(data).batch(4)
+    >>> example_batch = next(iter(dataset))
+    >>> feature_layer = lambda feature_column, batch: tf.keras.layers.DenseFeatures(feature_column)(batch).numpy()
+    >>> encoder = EmbeddingFeatureEncoder(dimension=2)
+    >>> encoded_feature = encoder.encode(dataset, ['feature'])
+    >>> feature_layer(encoded_feature, example_batch)
+        # results will differ due the randomness
+        array([[-0.5162831 , -0.18130358],
+               [ 0.50860345, -0.00483216],
+               [ 0.00722361,  0.14289041],
+               [ 0.00722361,  0.14289041]], dtype=float32)
     """
     def __init__(self, **kwargs):
         super().__init__(feature_transformer=tf.feature_column.embedding_column, **kwargs)
 
 
 class CategoryCrossingFeatureEncoder(BaseCategoricalFeatureColumnEncoder):
-    """Create cross column features
+    """Class creates cross column features using tensorflow feature_columns. This is a wrapper to
+    tf.feature_column.crossed_column to conform to the BaseFeatureColumnEncoder interface and does not change the behaviour.
+
+    Examples
+    --------
+    >>> data = {'feature_a': ['a', 'b', 'c', 'c', 'c', 'c', 'd', 'd', 'd'],
+                'feature_b': ['e', 'f', 'g', 'g', 'g', 'g', 'g', 'g', 'g']}
+    >>> dataset=tf.data.Dataset.from_tensor_slices(data).batch(4)
+    >>> example_batch = next(iter(dataset))
+    >>> feature_layer = lambda feature_column, batch: tf.keras.layers.DenseFeatures(feature_column)(batch).numpy()
+    >>> encoder = CategoryCrossingFeatureEncoder(hash_bucket_size=3)
+    >>> encoded_feature = encoder.encode(dataset, ['feature_a', 'feature_b'])
+    >>> feature_layer(encoded_feature, example_batch)
+        array([[0., 0., 1.],
+               [1., 0., 0.],
+               [0., 0., 1.],
+               [0., 0., 1.]], dtype=float32)
     """
     def __init__(self, **kwargs):
         super().__init__(feature_transformer=tf.feature_column.crossed_column, **kwargs)
