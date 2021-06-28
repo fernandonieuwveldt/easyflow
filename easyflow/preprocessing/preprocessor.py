@@ -35,17 +35,6 @@ class SequentialEncoder(BaseEncoder):
     """
     def __init__(self, feature_encoder_list=None):
         super().__init__(feature_encoder_list=feature_encoder_list)
-        self.feature_encoder_list = self.map_steps(self.feature_encoder_list)
-    
-    def map_steps(self, steps=None):
-        name, preprocessors, features = self.feature_encoder_list
-        if not isinstance(preprocessors, list):
-            return self.feature_encoder_list
-
-        steps_mapped = []
-        for preprocessor in preprocessors:
-            steps_mapped.append((name, preprocessor, features))
-        return steps_mapped
 
     def encode(self, dataset):
         """Apply feature encodings on supplied feature encoding list
@@ -58,7 +47,6 @@ class SequentialEncoder(BaseEncoder):
         """
         name, preprocessor, features = self.feature_encoder_list[0]
         feature_inputs = self.create_inputs(features, preprocessor.dtype)
-        # TODO: feature_inputs and encoded_features should be of the same type
         encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
         if len(self.feature_encoder_list) == 1:
             # SequentialEncoder use case is for multiple encoders applied on the same features
@@ -100,6 +88,7 @@ class Pipeline:
             all_feature_inputs.extend(feature_inputs)
             all_feature_encoders[encoder_step_name] = feature_encoders
         return all_feature_inputs, all_feature_encoders
+
 
 class FeatureUnion(Pipeline):
     """Apply column based preprocessing on the data and combine features with a concat layer.

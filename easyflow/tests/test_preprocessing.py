@@ -26,13 +26,6 @@ class TestPreprocessingPipelines(unittest.TestCase):
         # thal is represented as a string
         self.string_categorical_features = ['thal']
 
-        # self.feature_encoder_list = [
-        #                     Encoder([('numeric_encoder', Normalization(), self.numerical_features )]),
-        #                     Encoder([('categorical_encoder', CategoryEncoding(), self.categorical_features)]),
-        #                     # For feature thal we first need to run StringLookup followed by a CategoryEncoding layer
-        #                     SequentialEncoder([('string_encoder', StringLookup(), self.string_categorical_features),
-        #                                        ('categorical_encoder', CategoryEncoding(), self.string_categorical_features)])
-        #                     ]
         self.feature_encoder_list = [
                             ('numeric_encoder', Normalization(), self.numerical_features),
                             ('categorical_encoder', CategoryEncoding(), self.categorical_features),
@@ -73,13 +66,13 @@ class TestPreprocessingPipelines(unittest.TestCase):
         all_feature_inputs, preprocessing_layer = encoder.encode(self.dataset)
         assert preprocessing_layer.shape[-1] == 7
 
-    # def test_invalid_encoder(self):
-    #     """Test with invalid preprocessing layer
-    #     """
-    #     try:
-    #         Encoder([('categorical_encoder', tf.keras.layers.Dense(32), self.categorical_features)])
-    #     except TypeError as error:
-    #         self.assertTrue("All preprocessing/encoding layers should have adapt method" in str(error))
+    def test_invalid_encoder(self):
+        """Test with invalid preprocessing layer
+        """
+        try:
+            Encoder(('categorical_encoder', tf.keras.layers.Dense(32), self.categorical_features))
+        except TypeError as error:
+            self.assertTrue("All preprocessing/encoding layers should have adapt method" in str(error))
 
     def test_encoding_validator(self):
         """Test preprocessing layers with arguments supplied

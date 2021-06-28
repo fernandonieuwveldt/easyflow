@@ -1,5 +1,5 @@
 """
-Transformer for tensorflow feature columns
+Feature transforming pipelines/composers using tensorflow feature columns
 """
 
 import tensorflow as tf
@@ -55,4 +55,4 @@ class FeatureUnionTransformer(FeatureColumnTransformer):
         feature_layer = [feature_layer for feature_layer in feature_encoder_layer.values()]
         if len(feature_layer) == 1:
             return feature_layer_inputs, feature_layer.pop()
-        return feature_layer_inputs, tf.keras.layers.concatenate(copy.copy(feature_layer))
+        return feature_layer_inputs, tf.keras.layers.concatenate(feature_layer)

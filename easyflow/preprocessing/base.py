@@ -25,9 +25,42 @@ class BaseEncoder:
     def __init__(self, feature_encoder_list=None):
         self.feature_encoder_list = feature_encoder_list
         features = self.feature_encoder_list[2]
-        self._check_and_map()
-        # self._validate_encoding_list()
+        self.map_preprocessor()
+        self.validate_encoding_list()
+        self.feature_encoder_list = self.remap(self.feature_encoder_list)
         self.adapted_preprocessors = {feature_name: one2one_func for feature_name in features}
+
+    def validate_encoding_list(self):
+        """Validate that all prepocessorts has adapt method
+        """
+        name, preprocessors, features = self.feature_encoder_list
+        if not isinstance(preprocessors, list):
+            preprocessors = [preprocessors]
+
+        for preprocessor in preprocessors:
+            if not hasattr(preprocessor, "adapt"):
+                raise TypeError("All preprocessing/encoding layers should have adapt method"
+                                "'%s' (type %s) doesn't" % (preprocessor, type(preprocessor)))
+
+    def map_preprocessor(self):
+        """Check and Map input if any of the preprocessors are None, i.e. use as is
+        """
+        self.feature_encoder_list = list(self.feature_encoder_list)
+        name, preprocessor, features = self.feature_encoder_list
+
+        selector = lambda _preprocessor: _preprocessor or IdentityPreprocessingLayer()
+        if isinstance(preprocessor, list):
+            self.feature_encoder_list[1] = [selector(_preprocessor) for _preprocessor in preprocessor]
+        else:
+            self.feature_encoder_list[1] = selector(preprocessor)
+        self.feature_encoder_list = tuple(self.feature_encoder_list)
+
+    def remap(self, steps=None):
+        """map multiple encoders to single encoders"""
+        name, preprocessors, features = self.feature_encoder_list
+        if not isinstance(preprocessors, list):
+            return self.feature_encoder_list
+        return [(name, preprocessor, features) for preprocessor in preprocessors]
 
     @abstractmethod
     def encode(self, dataset):
@@ -39,30 +72,6 @@ class BaseEncoder:
         Returns:
             (list, dict): Keras inputs for each feature and dict of encoders
         """
-
-    def _validate_encoding_list(self):
-        """Validate that all prepocessorts has adapt method
-        """
-        import pdb
-        pdb.set_trace()
-        name, preprocessors, features = zip(*self.feature_encoder_list)
-
-        for p in preprocessors:
-            if not hasattr(p, "adapt"):
-                raise TypeError("All preprocessing/encoding layers should have adapt method"
-                                "'%s' (type %s) doesn't" % (p, type(p)))
-
-    def _check_and_map(self):
-        """Check and Map input if any of the preprocessors are None, i.e. use as is
-        """
-        # import pdb
-        # pdb.set_trace()
-        # for k, (name, preprocessor, features) in enumerate(list(self.feature_encoder_list)):
-        #     self.feature_encoder_list[k] = (name, preprocessor or IdentityPreprocessingLayer(), features)
-        self.feature_encoder_list = list(self.feature_encoder_list)
-        name, preprocessor, features = self.feature_encoder_list
-        self.feature_encoder_list[1] = preprocessor or IdentityPreprocessingLayer()
-        self.feature_encoder_list = tuple(self.feature_encoder_list)
 
     def create_inputs(self, features, dtype):
         """Create list of keras Inputs
@@ -76,7 +85,7 @@ class BaseEncoder:
         """Apply feature encodings on supplied list
 
         Args:
-            X (tf.data.Dataset): Features Data to apply encoder on.
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
 
         Returns:
             (list, list): Keras inputs for each feature and list of encoders
