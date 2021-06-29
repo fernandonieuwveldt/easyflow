@@ -9,3 +9,7 @@ class IdentityPreprocessingLayer(PreprocessingLayer):
     """
     def call(self, inputs):
         return tf.keras.layers.Reshape((1, ))(inputs)
+
+    def get_config(self): 
+        """need to override get_config"""
+        return super().get_config().copy()

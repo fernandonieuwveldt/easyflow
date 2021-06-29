@@ -10,14 +10,15 @@ Model file structure:
 │   │   ├── __init__.py
 │   │   ├── mapper.py
 │   ├── feature_encoders
-│   │   ├── base.py
-│   │   ├── feature_encoder.py
 │   │   ├── __init__.py
-│   │   └── transformer.py
+│   │   ├── base.py
+│   │   ├── categorical_encoders.py
+│   │   ├── numerical_encoders.py
+│   │   └── pipeline.py
 │   ├── preprocessing
+│   │   ├── __init__.py
 │   │   ├── base.py
 │   │   ├── custom.py
-│   │   ├── __init__.py
 │   │   ├── preprocessor.py
 │   └── tests
 │       ├── __init__.py
@@ -47,11 +48,11 @@ The easyflow.preprocessing module contains functionality similar to what sklearn
 ```python
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.layers.experimental.preprocessing import Normalization, CategoryEncoding, StringLookup
+from tensorflow.keras.layers.experimental.preprocessing import Normalization, StringLookup, IntegerLookup
 
 # local imports
-from easyflow.data.mapper import TensorflowDataMapper
-from easyflow.preprocessing.preprocessor import Encoder, Pipeline, SequentialEncoder, FeatureUnion
+from easyflow.data import TensorflowDataMapper
+from easyflow.preprocessing import FeatureUnion
 ```
 
 ### Read in data and map as tf.data.Dataset
@@ -83,11 +84,10 @@ Use Encoder and SequentialEncoder to preprocess features by putting everything i
 
 ```python
 feature_encoder_list = [
-                        Encoder([('numeric_encoder', Normalization(), NUMERICAL_FEATURES)]),
-                        Encoder([('categorical_encoder', CategoryEncoding(), CATEGORICAL_FEATURES)]),
-                        # For feature thal we first need to run StringLookup followed by a CategoryEncoding layer
-                        SequentialEncoder([('string_encoder', StringLookup(), STRING_CATEGORICAL_FEATURES),
-                                           ('categorical_encoder', CategoryEncoding(), STRING_CATEGORICAL_FEATURES)])
+                        ('numeric_encoder', Normalization(), NUMERICAL_FEATURES),
+                        ('categorical_encoder', IntegerLookup(output_mode='binary'), CATEGORICAL_FEATURES),
+                        # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
+                        ('string_encoder', [StringLookup(), IntegerLookup(output_mode='binary')], STRING_CATEGORICAL_FEATURES)
                         ]
 
 encoder = FeatureUnion(feature_encoder_list)
@@ -122,9 +122,9 @@ import pandas as pd
 import tensorflow as tf
 
 # local imports
-from easyflow.data.mapper import TensorflowDataMapper
-from easyflow.feature_encoders.transformer import FeatureColumnTransformer, FeatureUnionTransformer
-from easyflow.feature_encoders.feature_encoder import NumericalFeatureEncoder, EmbeddingFeatureEncoder, CategoricalFeatureEncoder
+from easyflow.data import TensorflowDataMapper
+from easyflow.feature_encoders import FeatureColumnTransformer, FeatureUnionTransformer
+from easyflow.feature_encoders import NumericalFeatureEncoder, EmbeddingFeatureEncoder, CategoricalFeatureEncoder
 ```
 
 ### Load data

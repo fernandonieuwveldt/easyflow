@@ -8,6 +8,18 @@ import tensorflow as tf
 class FeatureColumnTransformer:
     """Apply column based transformation on the data
 
+    Examples
+    --------
+    >>> data = {'feature_a': ['a', 'b', 'c', 'c'],
+                'feature_b': [1.1, 1.2, 0.0, 2.2]}
+    >>> target = {'target': [1, 1, 0, 0]}
+    >>> dataset=tf.data.Dataset.from_tensor_slices((data, target)).batch(4)
+    >>> example_batch = next(iter(dataset))
+    >>> feature_encoder_list = [('categorical_encoder', CategoricalFeatureEncoder(), ['feature_a']),
+                                ('bucketized_encoder', BucketizedFeatureEncoder(boundaries=[1]), ['feature_b'])]
+    >>> encoder = FeatureColumnTransformer(feature_encoder_list)
+    >>> inputs, feature_layer = encoder.transform(dataset)
+
     Args:
         feature_encoder_list : List of encoders of the form: ('name', encoder type, list of features)
     """
@@ -38,6 +50,19 @@ class FeatureColumnTransformer:
 
 class FeatureUnionTransformer(FeatureColumnTransformer):
     """Apply transformations and apply union/concatenating individual feature layers
+
+    Examples
+    --------
+    >>> data = {'feature_a': ['a', 'b', 'c', 'c'],
+                'feature_b': [1.1, 1.2, 0.0, 2.2]}
+    >>> target = {'target': [1, 1, 0, 0]}
+    >>> dataset=tf.data.Dataset.from_tensor_slices((data, target)).batch(4)
+    >>> example_batch = next(iter(dataset))
+    >>> feature_encoder_list = [('categorical_encoder', CategoricalFeatureEncoder(), ['feature_a']),
+                                ('bucketized_encoder', BucketizedFeatureEncoder(boundaries=[1]), ['feature_b'])]
+    >>> encoder = FeatureUnionTransformer(feature_encoder_list)
+    >>> inputs, feature_layer = encoder.transform(dataset)
+
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

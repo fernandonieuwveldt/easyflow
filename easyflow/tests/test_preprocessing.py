@@ -5,7 +5,7 @@ import unittest
 
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.layers.experimental.preprocessing import Normalization, CategoryEncoding, StringLookup
+from tensorflow.keras.layers.experimental.preprocessing import Normalization, IntegerLookup, StringLookup
 
 # local imports
 from easyflow.data import TensorflowDataMapper
@@ -28,9 +28,9 @@ class TestPreprocessingPipelines(unittest.TestCase):
 
         self.feature_encoder_list = [
                             ('numeric_encoder', Normalization(), self.numerical_features),
-                            ('categorical_encoder', CategoryEncoding(), self.categorical_features),
-                            # For feature thal we first need to run StringLookup followed by a CategoryEncoding layer
-                            ('string_encoder', [StringLookup(), CategoryEncoding()], self.string_categorical_features)
+                            ('categorical_encoder', IntegerLookup(output_mode='binary'), self.categorical_features),
+                            # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
+                            ('string_encoder', [StringLookup(), IntegerLookup(output_mode='binary')], self.string_categorical_features)
                             ]
 
     def test_preprocessing_pipeline(self):
@@ -46,9 +46,9 @@ class TestPreprocessingPipelines(unittest.TestCase):
         """
         feature_encoder_list_none = [
                             ('numeric_encoder', None, self.numerical_features ),
-                            ('categorical_encoder', CategoryEncoding(), self.categorical_features),
-                            # For feature thal we first need to run StringLookup followed by a CategoryEncoding layer
-                            ('string_encoder', [StringLookup(), CategoryEncoding()], self.string_categorical_features)
+                            ('categorical_encoder', IntegerLookup(output_mode='binary'), self.categorical_features),
+                            # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
+                            ('string_encoder', [StringLookup(), IntegerLookup(output_mode='binary')], self.string_categorical_features)
                             ]
 
         all_feature_inputs, history = train_model_util(self.dataset, feature_encoder_list_none)
@@ -60,11 +60,11 @@ class TestPreprocessingPipelines(unittest.TestCase):
         """Test preprocessing layers with no arguments supplied
         """
         steps_list = [
-                      ('string_encoder', [StringLookup(), CategoryEncoding()], self.string_categorical_features)
+                      ('string_encoder', [StringLookup(), IntegerLookup(output_mode='binary')], self.string_categorical_features)
         ]
         encoder = FeatureUnion(steps_list)
         all_feature_inputs, preprocessing_layer = encoder.encode(self.dataset)
-        assert preprocessing_layer.shape[-1] == 7
+        assert preprocessing_layer.shape[-1] == 6
 
     def test_invalid_encoder(self):
         """Test with invalid preprocessing layer
@@ -78,7 +78,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
         """Test preprocessing layers with arguments supplied
         """
         steps_list = [
-                      ('string_encoder', [StringLookup(max_tokens=4), CategoryEncoding()], self.string_categorical_features)
+                      ('string_encoder', [StringLookup(max_tokens=4), IntegerLookup(output_mode='binary')], self.string_categorical_features)
         ]
         encoder = FeatureUnion(steps_list)
         all_feature_inputs, preprocessing_layer = encoder.encode(self.dataset)

@@ -79,7 +79,7 @@ class BaseEncoder:
         Returns:
             list: list of keras inputs
         """
-        return [tf.keras.Input(shape=(), name=feature, dtype=dtype) for feature in features]
+        return [tf.keras.Input(shape=(1,), name=feature, dtype=dtype) for feature in features]
 
     def _encode_one(self, dataset, preprocessor, features, feature_inputs):
         """Apply feature encodings on supplied list
