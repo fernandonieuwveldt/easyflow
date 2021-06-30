@@ -31,6 +31,9 @@ def get_unique_vocabulary(dataset=None, features=None):
                             .apply(tf.data.experimental.unique())\
                             .as_numpy_iterator()
         uniq_vocab = list(feature_ds)
+        if all(map(lambda x: isinstance(x, bytes), uniq_vocab)):
+            # map bytes to ensure objects are serializable when saving model
+            uniq_vocab = [str(value, 'utf-8') for value in uniq_vocab]
         feature_vocab_list[feature] = tf.feature_column.categorical_column_with_vocabulary_list(feature, uniq_vocab)
     return feature_vocab_list
 
