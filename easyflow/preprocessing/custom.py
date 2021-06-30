@@ -11,5 +11,5 @@ class IdentityPreprocessingLayer(PreprocessingLayer):
         return tf.keras.layers.Reshape((1, ))(inputs)
 
     def get_config(self): 
-        """need to override get_config"""
+        """Override get_config to ensure saving of models works"""
         return super().get_config().copy()

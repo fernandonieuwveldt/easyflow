@@ -16,23 +16,23 @@ def extract_feature_column(dataset, name):
     return feature
 
 
-class BaseEncoder:
-    """Apply column based transformation on the data
+class BaseEncoder(ABC):
+    """Apply column based transformation on the data using tf.keras  preprocessing layers.
 
     Args:
         feature_encoder_list : List of encoders of the form: ('name', encoder type, list of features)
     """
     def __init__(self, feature_encoder_list=None):
         self.feature_encoder_list = feature_encoder_list
-        features = self.feature_encoder_list[2]
+        _, _, features = self.feature_encoder_list
+        # map and validate encoding list
         self.map_preprocessor()
         self.validate_encoding_list()
         self.feature_encoder_list = self.remap(self.feature_encoder_list)
         self.adapted_preprocessors = {feature_name: one2one_func for feature_name in features}
 
     def validate_encoding_list(self):
-        """Validate that all prepocessorts has adapt method
-        """
+        """Validate that all prepocessorts has adapt method"""
         name, preprocessors, features = self.feature_encoder_list
         if not isinstance(preprocessors, list):
             preprocessors = [preprocessors]
@@ -43,11 +43,9 @@ class BaseEncoder:
                                 "'%s' (type %s) doesn't" % (preprocessor, type(preprocessor)))
 
     def map_preprocessor(self):
-        """Check and Map input if any of the preprocessors are None, i.e. use as is
-        """
+        """Check and Map input if any of the preprocessors are None, i.e. use as is"""
         self.feature_encoder_list = list(self.feature_encoder_list)
         name, preprocessor, features = self.feature_encoder_list
-
         selector = lambda _preprocessor: _preprocessor or IdentityPreprocessingLayer()
         if isinstance(preprocessor, list):
             self.feature_encoder_list[1] = [selector(_preprocessor) for _preprocessor in preprocessor]
@@ -55,8 +53,15 @@ class BaseEncoder:
             self.feature_encoder_list[1] = selector(preprocessor)
         self.feature_encoder_list = tuple(self.feature_encoder_list)
 
-    def remap(self, steps=None):
-        """map multiple encoders to single encoders"""
+    def remap(self, steps):
+        """Map multiple encoders to single encoders. If sequence of encoders are applied on features they will remapped.
+
+        Args:
+            steps (list): List of encoders of the form: ('name', encoder type, list of features)
+
+        Returns:
+            (list): List of remapped sequential encoders
+        """
         name, preprocessors, features = self.feature_encoder_list
         if not isinstance(preprocessors, list):
             return self.feature_encoder_list
@@ -74,10 +79,14 @@ class BaseEncoder:
         """
 
     def create_inputs(self, features, dtype):
-        """Create list of keras Inputs
+        """Create list of keras Input layers
+
+        Args:
+            features (list): list of feature names
+            dtype (str): data type of features
 
         Returns:
-            list: list of keras inputs
+            list: list of Keras Input layers
         """
         return [tf.keras.Input(shape=(1,), name=feature, dtype=dtype) for feature in features]
 
@@ -85,10 +94,13 @@ class BaseEncoder:
         """Apply feature encodings on supplied list
 
         Args:
-            dataset (tf.data.Dataset): Features Data to apply encoder on.
+            dataset (tf.data.Dataset): dataset (tf.data.Dataset): Features Data to apply encoder on.
+            preprocessor (tf.keras.layer): tf.keras preprocessing layer
+            features (list): list of feature names
+            feature_inputs (list): list of Keras Input layers
 
         Returns:
-            (list, list): Keras inputs for each feature and list of encoders
+            (dict): dictionary with feature as key and encoded preprocessing layer as value 
         """
         encoded_features = {}
         # get initial preprocessing layer config 
@@ -113,3 +125,53 @@ class BaseEncoder:
     @property
     def encoder_name(self):
         return self[0][0]
+
+
+class _BaseSingleEncoder(BaseEncoder):
+    """
+    Preprocess each feature based on specified preprocessing layer contained in feature_encoder_list
+    """
+    def __init__(self, feature_encoder_list=None):
+        super().__init__(feature_encoder_list=feature_encoder_list)
+
+    def encode(self, dataset):
+        """Apply feature encodings on supplied feature encoding list
+
+        Args:
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
+
+        Returns:
+            (list, dict): Keras inputs for each feature and dict of encoders
+        """
+        name, preprocessor, features = self.feature_encoder_list
+        feature_inputs = self.create_inputs(features, preprocessor.dtype)
+        encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
+        return feature_inputs, encoded_features
+
+
+class _BaseMultipleEncoder(BaseEncoder):
+    """
+    Preprocessing pipeline to apply multiple encoders in serie
+    """
+    def __init__(self, feature_encoder_list=None):
+        super().__init__(feature_encoder_list=feature_encoder_list)
+
+    def encode(self, dataset):
+        """Apply feature encodings on supplied feature encoding list
+
+        Args:
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
+
+        Returns:
+            (list, dict): Keras inputs for each feature and dict of encoders
+        """
+        name, preprocessor, features = self.feature_encoder_list[0]
+        feature_inputs = self.create_inputs(features, preprocessor.dtype)
+        encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
+        if len(self.feature_encoder_list) == 1:
+            # SequentialEncoder use case is for multiple encoders applied on the same features
+            # It should never have only one encoder. Adding this step for robustness
+            return feature_inputs, encoded_features
+        for (name, preprocessor, features) in self.feature_encoder_list[1:]:
+            encoded_features = self._encode_one(dataset, preprocessor, features, [v for v in encoded_features.values()])
+        return feature_inputs, encoded_features

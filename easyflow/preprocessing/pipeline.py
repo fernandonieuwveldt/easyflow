@@ -1,60 +1,8 @@
 """Main feature preprocessing interfaces"""
 
 import tensorflow as tf
-from tensorflow.keras.layers.experimental.preprocessing import PreprocessingLayer
 
-from .base import BaseEncoder
-from .base import extract_feature_column
-
-
-class Encoder(BaseEncoder):
-    """
-    Preprocess each feature based on specified preprocessing layer contained in feature_encoder_list
-    """
-    def __init__(self, feature_encoder_list=None):
-        super().__init__(feature_encoder_list=feature_encoder_list)
-
-    def encode(self, dataset):
-        """Apply feature encodings on supplied feature encoding list
-
-        Args:
-            dataset (tf.data.Dataset): Features Data to apply encoder on.
-
-        Returns:
-            (list, dict): Keras inputs for each feature and dict of encoders
-        """
-        name, preprocessor, features = self.feature_encoder_list
-        feature_inputs = self.create_inputs(features, preprocessor.dtype)
-        encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
-        return feature_inputs, encoded_features
-
-
-class SequentialEncoder(BaseEncoder):
-    """
-    Preprocessing pipeline to apply multiple encoders in serie
-    """
-    def __init__(self, feature_encoder_list=None):
-        super().__init__(feature_encoder_list=feature_encoder_list)
-
-    def encode(self, dataset):
-        """Apply feature encodings on supplied feature encoding list
-
-        Args:
-            dataset (tf.data.Dataset): Features Data to apply encoder on.
-
-        Returns:
-            (list, dict): Keras inputs for each feature and dict of encoders
-        """
-        name, preprocessor, features = self.feature_encoder_list[0]
-        feature_inputs = self.create_inputs(features, preprocessor.dtype)
-        encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
-        if len(self.feature_encoder_list) == 1:
-            # SequentialEncoder use case is for multiple encoders applied on the same features
-            # It should never have only one encoder. Adding this step for robustness
-            return feature_inputs, encoded_features
-        for (name, preprocessor, features) in self.feature_encoder_list[1:]:
-            encoded_features = self._encode_one(dataset, preprocessor, features, [v for v in encoded_features.values()])
-        return feature_inputs, encoded_features
+from .base import _BaseSingleEncoder, _BaseMultipleEncoder
 
 
 class Pipeline:
@@ -80,9 +28,9 @@ class Pipeline:
         all_feature_inputs, all_feature_encoders = [], {}
         for step in self.feature_encoder_list:
             if isinstance(step[1], list):
-                encoder = SequentialEncoder(step)
+                encoder = _BaseMultipleEncoder(step)
             else:
-                encoder = Encoder(step)
+                encoder = _BaseSingleEncoder(step)
             encoder_step_name = encoder.encoder_name
             feature_inputs, feature_encoders = encoder.encode(dataset)
             all_feature_inputs.extend(feature_inputs)

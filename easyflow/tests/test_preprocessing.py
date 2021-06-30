@@ -9,7 +9,7 @@ from tensorflow.keras.layers.experimental.preprocessing import Normalization, In
 
 # local imports
 from easyflow.data import TensorflowDataMapper
-from easyflow.preprocessing import Encoder, SequentialEncoder, FeatureUnion
+from easyflow.preprocessing import _BaseSingleEncoder, FeatureUnion
 
 
 class TestPreprocessingPipelines(unittest.TestCase):
@@ -70,7 +70,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
         """Test with invalid preprocessing layer
         """
         try:
-            Encoder(('categorical_encoder', tf.keras.layers.Dense(32), self.categorical_features))
+            _BaseSingleEncoder(('categorical_encoder', tf.keras.layers.Dense(32), self.categorical_features))
         except TypeError as error:
             self.assertTrue("All preprocessing/encoding layers should have adapt method" in str(error))
 

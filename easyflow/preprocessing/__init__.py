@@ -1,12 +1,12 @@
 """Preprocessing pipelines 
 """
 
-from .preprocessor import Encoder, SequentialEncoder, Pipeline, FeatureUnion
+from .pipeline import _BaseSingleEncoder, _BaseMultipleEncoder, Pipeline, FeatureUnion
 from .custom import IdentityPreprocessingLayer
 
 
-__all__ = ["Encoder",
-           "SequentialEncoder",
+__all__ = ["_BaseSingleEncoder",
+           "_BaseMultipleEncoder",
            "Pipeline",
            "FeatureUnion",
            "IdentityPreprocessingLayer"]
