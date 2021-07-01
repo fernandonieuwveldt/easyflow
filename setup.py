@@ -11,7 +11,7 @@ REQUIRES_PYTHON = '>=3.6.0'
 
 setup(
     name="easy-tensorflow",
-    version="0.1.9",
+    version="1.0.0",
     author="Fernando Nieuwveldt",
     author_email="fdnieuwveldt@gmail.com",
     description="An interface containing easy tensorflow model building blocks and feature pipelines",
