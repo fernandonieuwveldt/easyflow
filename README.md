@@ -19,7 +19,7 @@ Model file structure:
 │   │   ├── __init__.py
 │   │   ├── base.py
 │   │   ├── custom.py
-│   │   ├── preprocessor.py
+│   │   ├── pipeline.py
 │   └── tests
 │       ├── __init__.py
 │       ├── test_data
@@ -42,7 +42,7 @@ Model file structure:
 pip install easy-tensorflow
 ```
 
-# Example 1: Preprocessing Encoder, Pipeline, SequentialEncoder and FeatureUnion example
+# Example 1: Preprocessing Pipeline and FeatureUnion example
 The easyflow.preprocessing module contains functionality similar to what sklearn does with its Pipeline, FeatureUnion and ColumnTransformer does. Full example also in notebooks folder
 
 ```python
@@ -80,7 +80,6 @@ STRING_CATEGORICAL_FEATURES = ['thal']
 ```
 
 ### Setup Preprocessing layer using FeatureUnion
-Use Encoder and SequentialEncoder to preprocess features by putting everything in a FeatureUnion object.
 
 ```python
 feature_encoder_list = [
@@ -106,7 +105,6 @@ model.compile(
     loss=tf.keras.losses.BinaryCrossentropy(),
     metrics=[tf.keras.metrics.BinaryAccuracy(name='accuracy'), tf.keras.metrics.AUC(name='auc')])
 
-tf.keras.utils.plot_model(model, show_shapes=True, rankdir="LR")
 ```
 
 ### Fit model
@@ -115,7 +113,20 @@ history=model.fit(train_data_set, validation_data=val_data_set, epochs=10)
 ```
 
 # Example 2: Model building Pipeline using easyflow feature encoders module
-This module is a fusion between keras layers and tensorflow feature columns.
+This module is a fusion between keras layers and tensorflow feature columns. 
+
+FeatureColumnTransformer and FeatureUnionTransformer are the main interfaces and serves as feature transformation pipelines.
+
+Wrapper classes exists for the following feature_columns
+* CategoricalFeatureEncoder
+* EmbeddingFeatureEncoder
+* CategoryCrossingFeatureEncoder
+* NumericalFeatureEncoder
+* BucketizedFeatureEncoder
+
+To create a custom encoder or one where wrapper class does not exist, there are two base interfaces to use:
+* BaseFeatureColumnEncoder
+* BaseCategoricalFeatureColumnEncoder
 
 ```python
 import pandas as pd
@@ -201,15 +212,15 @@ feature_encoder_list = [('numerical_features', NumericalFeatureEncoder(), NUMERI
 There are two main column transformer classes namely FeatureColumnTransformer and FeatureUnionTransformer. For this example we are going to build a Wide and Deep model architecture. So we will be using the FeatureColumnTransformer since it gives us more flexibility. FeatureUnionTransformer concatenates all the features in the input layer
 
 ```python
-feature_layer_inputs, feature_encoders =  FeatureColumnTransformer(feature_encoder_list).transform(train_data_set)
+feature_layer_inputs, feature_layer =  FeatureColumnTransformer(feature_encoder_list).transform(train_data_set)
 ```
 
 ```python
-deep_features = feature_encoders['numerical_features']+\
-                feature_encoders['categorical_features']+\
-                feature_encoders['embedding_features_deep']
+deep_features = feature_layer['numerical_features']+\
+                feature_layer['categorical_features']+\
+                feature_layer['embedding_features_deep']
 
-wide_features = feature_encoders['embedding_features_wide']
+wide_features = feature_layer['embedding_features_wide']
 ```
 
 ###  Set up Wide and Deep model architecture
