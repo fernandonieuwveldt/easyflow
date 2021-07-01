@@ -1,3 +1,18 @@
+## VERSION 1.0.0
+* Update tensorflow to latest 2.5
+* Major refactoring of feature encoders module
+    - Refactor and added category crossing and bucketized encoders
+    - Gixed vocab string types from bytes to strings to solve model saving issue
+    - Added examples to class docstrings
+* Major refactoring of preprocessing classes:
+    - Added validator to base class
+    - Fixed breaking changes when upgrading tf
+    - Encapsulate Encoder class in pipeline classes
+* Updated notebook examples and added saving and loading of models for end to end process.
+* Updated docstrings
+* Updated unittest
+* Update README.md5
+
 ## VERSION 0.1.8
 * Added LICENSE
 
