@@ -1,13 +1,20 @@
 """Keras and tensorflow feature column pipeline
 """
 
-from .feature_encoder import CategoricalFeatureEncoder, EmbeddingFeatureEncoder, NumericalFeatureEncoder, get_unique_vocab
-from .transformer import FeatureColumnTransformer, FeatureUnionTransformer
+from .base import BaseFeatureColumnEncoder, BaseCategoricalFeatureColumnEncoder, get_unique_vocabulary
+from .categorical_encoders import CategoricalFeatureEncoder, EmbeddingFeatureEncoder,\
+    CategoryCrossingFeatureEncoder
+from .numerical_encoders import NumericalFeatureEncoder, BucketizedFeatureEncoder
+from .pipeline import FeatureColumnTransformer, FeatureUnionTransformer
 
 
-__all__ = ["CategoricalFeatureEncoder",
+__all__ = ["BaseFeatureColumnEncoder",
+           "BaseCategoricalFeatureColumnEncoder",
+           "CategoricalFeatureEncoder",
            "EmbeddingFeatureEncoder",
+           "CategoryCrossingFeatureEncoder",
            "NumericalFeatureEncoder",
+           "BucketizedFeatureEncoder",
            "get_unique_vocab",
            "FeatureColumnTransformer",
            "FeatureUnionTransformer"]
