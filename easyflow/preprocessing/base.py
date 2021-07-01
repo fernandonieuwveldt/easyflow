@@ -169,7 +169,7 @@ class _BaseMultipleEncoder(BaseEncoder):
         feature_inputs = self.create_inputs(features, preprocessor.dtype)
         encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
         if len(self.feature_encoder_list) == 1:
-            # SequentialEncoder use case is for multiple encoders applied on the same features
+            # _BaseMultipleEncoder use case is for multiple encoders applied on the same features
             # It should never have only one encoder. Adding this step for robustness
             return feature_inputs, encoded_features
         for (name, preprocessor, features) in self.feature_encoder_list[1:]:
