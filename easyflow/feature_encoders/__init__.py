@@ -3,7 +3,7 @@
 
 from .base import BaseFeatureColumnEncoder, BaseCategoricalFeatureColumnEncoder, get_unique_vocabulary
 from .categorical_encoders import CategoricalFeatureEncoder, EmbeddingFeatureEncoder,\
-    CategoryCrossingFeatureEncoder
+    CategoryCrossingFeatureEncoder, EmbeddingCrossingFeatureEncoder
 from .numerical_encoders import NumericalFeatureEncoder, BucketizedFeatureEncoder
 from .pipeline import FeatureColumnTransformer, FeatureUnionTransformer
 
@@ -13,6 +13,7 @@ __all__ = ["BaseFeatureColumnEncoder",
            "CategoricalFeatureEncoder",
            "EmbeddingFeatureEncoder",
            "CategoryCrossingFeatureEncoder",
+           "EmbeddingCrossingFeatureEncoder",
            "NumericalFeatureEncoder",
            "BucketizedFeatureEncoder",
            "get_unique_vocab",

@@ -76,7 +76,7 @@ class CategoryCrossingFeatureEncoder(BaseCategoricalFeatureColumnEncoder):
         super().__init__(feature_transformer=tf.feature_column.crossed_column, **kwargs)
 
     def encode(self, dataset=None, features=None):
-        """Apply Cross column feature engineering follow by indicator column
+        """Apply Cross column feature engineering followed by an indicator column
 
         Args:
             dataset (tf.data.Dataset): Features Data to apply encoder on.
@@ -89,3 +89,43 @@ class CategoryCrossingFeatureEncoder(BaseCategoricalFeatureColumnEncoder):
         crossed_features = self.feature_transformer(feature_vocab_list, **self.kwargs)
         crossed_features = tf.feature_column.indicator_column(crossed_features)
         return crossed_features
+
+
+class EmbeddingCrossingFeatureEncoder(BaseCategoricalFeatureColumnEncoder):
+    """Class creates cross column features using tensorflow feature_columns. This is a wrapper to
+    tf.feature_column.embedding_column to conform to the BaseFeatureColumnEncoder interface and does not change the behaviour.
+
+    Examples
+    --------
+    >>> data = {'feature_a': ['a', 'b', 'c', 'c', 'c', 'c', 'd', 'd', 'd'],
+                'feature_b': ['e', 'f', 'g', 'g', 'g', 'g', 'g', 'g', 'g']}
+    >>> dataset=tf.data.Dataset.from_tensor_slices(data).batch(4)
+    >>> example_batch = next(iter(dataset))
+    >>> feature_layer = lambda feature_column, batch: tf.keras.layers.DenseFeatures(feature_column)(batch).numpy()
+    >>> encoder = EmbeddingCrossingFeatureEncoder(embedding_dimension=2, hash_bucket_size=6)
+    >>> encoded_feature = encoder.encode(dataset, ['feature_a', 'feature_b'])
+    >>> feature_layer(encoded_feature, example_batch)
+        array([[-0.49085316,  0.18231249],
+               [ 0.05757887,  0.56533635],
+               [-0.49085316,  0.18231249],
+               [-0.49085316,  0.18231249]], dtype=float32)
+    """
+    def __init__(self, embedding_dimension, **kwargs):
+        super().__init__(feature_transformer=tf.feature_column.crossed_column, **kwargs)
+        self.embedding_dimension = embedding_dimension
+
+    def encode(self, dataset=None, features=None):
+        """Apply Cross column feature engineering followed by an embedding column
+
+        Args:
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
+            features (list): list of feature names
+
+        Returns:
+            (list): list of encoded features
+        """
+        feature_vocab_list = get_unique_vocabulary(dataset, features)
+        crossed_features = self.feature_transformer(feature_vocab_list, **self.kwargs)
+        embedded_crossed_features = tf.feature_column.embedding_column(categorical_column=crossed_features,
+                                                                        dimension=self.embedding_dimension)
+        return embedded_crossed_features
