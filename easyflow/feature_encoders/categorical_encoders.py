@@ -125,7 +125,7 @@ class EmbeddingCrossingFeatureEncoder(BaseCategoricalFeatureColumnEncoder):
             (list): list of encoded features
         """
         feature_vocab_list = get_unique_vocabulary(dataset, features)
-        embedding_crossed_features = self.feature_transformer(feature_vocab_list, **self.kwargs)
-        embedding_crossed_features = tf.feature_column.embedding_column(categorical_column=embedding_crossed_features,
+        crossed_features = self.feature_transformer(feature_vocab_list, **self.kwargs)
+        embedded_crossed_features = tf.feature_column.embedding_column(categorical_column=crossed_features,
                                                                         dimension=self.embedding_dimension)
-        return embedding_crossed_features
+        return embedded_crossed_features
