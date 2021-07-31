@@ -39,9 +39,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           # Install the package from setup.py
           VERSION=$(python setup.py --version)
-          # BUILD_VERSION=$(git log | head -n 1 | awk '{print $2}' | head -c 3)
-          BUILD_VERSION=$(git log --pretty=format:'' | wc -l)
-          # sed -i -r "s/version\=\"(.*)\"/version=\"\1-"$BUILD_VERSION"\"/g" setup.py
+          BUILD_VERSION=$(git log | head -n 1 | awk '{print $2}' | head -c 3)
           sed -i "s/version=\"$VERSION\"/version="$VERSION.$BUILD_VERSION"/g" setup.py
           python3 setup.py install
 
