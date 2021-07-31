@@ -4,7 +4,7 @@ name: Test & Upload to TestPyPI
 on:
   # Triggers the workflow on push to the master branch
   push:
-    branches: [ feature/auto-build ]
+    branches: '**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -28,7 +28,7 @@ jobs:
 
       # Installs and upgrades pip, installs other dependencies and installs the package from setup.py
       - name: "Installs and upgrades pip, installs other dependencies and installs the package from setup.py"
-        run:
+        run: |
           # Upgrade pip
           python3 -m pip install --upgrade pip
           # Install build deps
@@ -39,7 +39,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           # Install the package from setup.py
           VERSION=$(python setup.py --version)
-          BUILD_VERSION=$(git log --pretty=format:'' | wc -l)
+          BUILD_VERSION=$(git rev-list HEAD --count)
           sed -i -r "s/version\=\"(.*)\"/version=\"\1-dev"$BUILD_VERSION"\"/g" setup.py
           python3 setup.py install
 
