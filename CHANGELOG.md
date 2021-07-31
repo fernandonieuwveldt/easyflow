@@ -1,3 +1,7 @@
+## VERSION 1.1.0
+* Added EmbeddingCrossingFeatureEncoder
+* CI/CD pipeline using github actions and publish to PYPI
+
 ## VERSION 1.0.0
 * Update tensorflow to latest 2.5
 * Major refactoring of feature encoders module
