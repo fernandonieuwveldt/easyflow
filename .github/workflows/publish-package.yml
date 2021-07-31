@@ -1,0 +1,45 @@
+name: Test & Upload to PYPI
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: "Installs dependencies"
+        run: |
+          # Upgrade pip
+          python3 -m pip install --upgrade pip
+          # Install build deps
+          python3 -m pip install setuptools wheel twine
+          # If requirements.txt exists, install from it
+          if [ -f requirements.txt ]
+          then
+              pip install -r requirements.txt;
+          fi
+          python3 setup.py install
+
+      - name: "Test with unittest"
+        run: |
+          # install dependency for tests
+          pip install pandas==1.0.0
+          python3 -m unittest discover
+
+      - name: "Builds and uploads to PyPI"
+        run: |
+          python3 setup.py sdist bdist_wheel
+          python3 -m twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

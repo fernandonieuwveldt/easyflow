@@ -11,7 +11,7 @@ REQUIRES_PYTHON = '>=3.6.0'
 
 setup(
     name="easy-tensorflow",
-    version="1.0.0",
+    version="1.1.0",
     author="Fernando Nieuwveldt",
     author_email="fdnieuwveldt@gmail.com",
     description="An interface containing easy tensorflow model building blocks and feature pipelines",
@@ -19,7 +19,7 @@ setup(
     long_description=README,
     url="https://github.com/fernandonieuwveldt/easyflow",
     python_requires=REQUIRES_PYTHON,
-    packages=find_packages(),
+    packages=find_packages(exclude='tests'),
     install_requires=REQUIREMENTS,
     include_package_data=True,
     classifiers=[
