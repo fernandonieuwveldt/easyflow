@@ -120,6 +120,7 @@ FeatureColumnTransformer and FeatureUnionTransformer are the main interfaces and
 Wrapper classes exists for the following feature_columns
 * CategoricalFeatureEncoder
 * EmbeddingFeatureEncoder
+* EmbeddingCrossingFeatureEncoder
 * CategoryCrossingFeatureEncoder
 * NumericalFeatureEncoder
 * BucketizedFeatureEncoder
