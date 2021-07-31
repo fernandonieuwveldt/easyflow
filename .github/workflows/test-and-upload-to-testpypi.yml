@@ -28,7 +28,7 @@ jobs:
 
       # Installs and upgrades pip, installs other dependencies and installs the package from setup.py
       - name: "Installs and upgrades pip, installs other dependencies and installs the package from setup.py"
-        run: |
+        run:
           # Upgrade pip
           python3 -m pip install --upgrade pip
           # Install build deps
