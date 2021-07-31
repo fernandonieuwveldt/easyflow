@@ -39,7 +39,9 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           # Install the package from setup.py
           VERSION=$(python setup.py --version)
+          cd $GITHUB_WORKSPACE
           BUILD_VERSION=$(git rev-list HEAD --count)
+          cd ..
           sed -i -r "s/version\=\"(.*)\"/version=\"\1-dev"$BUILD_VERSION"\"/g" setup.py
           python3 setup.py install
 
