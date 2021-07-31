@@ -40,7 +40,7 @@ jobs:
           # Install the package from setup.py
           VERSION=$(python setup.py --version)
           BUILD_VERSION=$(git log | head -n 1 | awk '{print $2}' | head -c 3)
-          sed -i "s/version=\"$VERSION\"/version=\"$VERSION.$BUILD_VERSION\"/g" setup.py
+          sed -i "s/version=\"$VERSION\"/version=\"$VERSION.$GITHUB_RUN_ID\"/g" setup.py
           python3 setup.py install
 
       # Tests with unittest
