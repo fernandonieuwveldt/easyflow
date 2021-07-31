@@ -19,7 +19,7 @@ setup(
     long_description=README,
     url="https://github.com/fernandonieuwveldt/easyflow",
     python_requires=REQUIRES_PYTHON,
-    packages=find_packages(),
+    packages=find_packages(exclude='tests'),
     install_requires=REQUIREMENTS,
     include_package_data=True,
     classifiers=[
