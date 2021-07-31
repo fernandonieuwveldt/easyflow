@@ -38,6 +38,9 @@ jobs:
           # If requirements.txt exists, install from it
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           # Install the package from setup.py
+          VERSION=$(python setup.py --version)
+          BUILD_VERSION=$(git log --pretty=format:'' | wc -l)
+          sed -i -r "s/version\=\"(.*)\"/version=\"\1-dev"$BUILD_VERSION"\"/g" setup.py
           python3 setup.py install
 
       # Tests with unittest
