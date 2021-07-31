@@ -23,8 +23,6 @@ jobs:
           python3 -m pip install --upgrade pip
           # Install build deps
           python3 -m pip install setuptools wheel twine
-          # install dependency for tests
-          pip install pandas==1.0.0
           # If requirements.txt exists, install from it
           if [ -f requirements.txt ]
           then
@@ -38,6 +36,8 @@ jobs:
 
       - name: "Test with unittest"
         run: |
+          # install dependency for tests
+          pip install pandas==1.0.0
           python3 -m unittest discover
 
       - name: "Build and Upload to TestPyPI"
