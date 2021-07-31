@@ -41,7 +41,7 @@ jobs:
           VERSION=$(python setup.py --version)
           cd $GITHUB_WORKSPACE
           BUILD_VERSION=$(git rev-list HEAD --count)
-          cd ..
+          cd -
           sed -i -r "s/version\=\"(.*)\"/version=\"\1-dev"$BUILD_VERSION"\"/g" setup.py
           python3 setup.py install
 
