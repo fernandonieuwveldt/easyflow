@@ -4,7 +4,7 @@ import tensorflow as tf
 
 # local imports
 from easyflow.data import TensorflowDataMapper
-from easyflow.feature_encoders import FeatureUnionTransformer
+from easyflow.feature_encoders import FeatureUnionTransformer, InferedFeatureTransformer
 from easyflow.feature_encoders import NumericalFeatureEncoder, CategoricalFeatureEncoder, BucketizedFeatureEncoder,\
     EmbeddingFeatureEncoder, CategoryCrossingFeatureEncoder
 
@@ -50,6 +50,13 @@ class TestFeatureEncoders(unittest.TestCase):
         assert len(history.history['loss']) == 10
         assert len(feature_layer_inputs) == 13
         assert feature_layer.shape[1] == 45
+
+    def test_infered_encoding(self):
+        """Test the basic infered encoding transformer"""
+        encoding_list = InferedFeatureTransformer().infer_feature_transformer(self.dataset)
+        assert len(encoding_list) == 2
+        assert encoding_list[0][-1] == ['age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg',
+                                        'thalach', 'exang', 'oldpeak', 'slope', 'ca']
 
 
 if __name__ == '__main__':
