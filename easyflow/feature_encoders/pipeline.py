@@ -85,7 +85,7 @@ class FeatureUnionTransformer(FeatureColumnTransformer):
         return feature_layer_inputs, tf.keras.layers.concatenate(feature_layer)
 
 
-class InferedFeatureTransformer(FeatureUnionTransformer):
+class InferedFeatureTransformer:
     """Infer basic encoding list from features dtype
 
     Examples
@@ -100,7 +100,7 @@ class InferedFeatureTransformer(FeatureUnionTransformer):
 
     """
     def __init__(self):
-        self.feature_encoder_list = None
+        pass
 
     def infer_feature_transformer(self, dataset):
         """Infer standard pipeline for structured data, i.e NumericalFeatureEncoder for numeric
@@ -133,4 +133,5 @@ class InferedFeatureTransformer(FeatureUnionTransformer):
         """
         # need better way to assign encoding list
         self.feature_encoder_list = self.infer_feature_transformer(dataset)
-        return super().transform(dataset)
+        encoder = FeatureUnionTransformer(self.feature_encoder_list)
+        return encoder.transform(dataset)
