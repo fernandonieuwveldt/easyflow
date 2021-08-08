@@ -1,3 +1,6 @@
+## VERSION 1.1.1
+* Fix README example 2
+
 ## VERSION 1.1.0
 * Added EmbeddingCrossingFeatureEncoder
 * CI/CD pipeline using github actions and publish to PYPI
