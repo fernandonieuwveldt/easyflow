@@ -205,7 +205,7 @@ EMBEDDING_FEATURES_NAMES = ['education',
 
 feature_encoder_list = [('numerical_features', NumericalFeatureEncoder(), NUMERIC_FEATURE_NAMES),
                         ('categorical_features', CategoricalFeatureEncoder(), CATEGORICAL_FEATURES_NAMES),
-                        ('embedding_features_deep', EmbeddingFeatureEncoder(), EMBEDDING_FEATURES_NAMES),
+                        ('embedding_features_deep', EmbeddingFeatureEncoder(dimension=10), EMBEDDING_FEATURES_NAMES),
                         ('embedding_features_wide', CategoricalFeatureEncoder(), EMBEDDING_FEATURES_NAMES)]
 ```
 
@@ -217,29 +217,27 @@ feature_layer_inputs, feature_layer =  FeatureColumnTransformer(feature_encoder_
 ```
 
 ```python
-deep_features = feature_layer['numerical_features']+\
-                feature_layer['categorical_features']+\
-                feature_layer['embedding_features_deep']
+deep = tf.keras.layers.concatenate([feature_layer['numerical_features'],
+                                    feature_layer['categorical_features'],
+                                    feature_layer['embedding_features_deep']])
 
-wide_features = feature_layer['embedding_features_wide']
+wide = feature_layer['embedding_features_wide']
 ```
 
 ###  Set up Wide and Deep model architecture
 ```python
-deep = tf.keras.layers.DenseFeatures(deep_features)(feature_layer_inputs)
 deep = tf.keras.layers.BatchNormalization()(deep)
-
-wide = tf.keras.layers.DenseFeatures(wide_features)(feature_layer_inputs)
 
 for nodes in [128, 64, 32]:
     deep = tf.keras.layers.Dense(nodes, activation='relu')(deep)
     deep = tf.keras.layers.Dropout(0.5)(deep)
 
+# combine wide and deep layers
 wide_and_deep = tf.keras.layers.concatenate([deep, wide])
 output = tf.keras.layers.Dense(1, activation='sigmoid')(wide_and_deep)
 model = tf.keras.Model(inputs=[v for v in feature_layer_inputs.values()], outputs=output)
 model.compile(loss=tf.keras.losses.BinaryCrossentropy(label_smoothing=0.0),
-              optimizer=tf.keras.optimizers.Adam(lr=0.001),
+              optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
               metrics=[tf.keras.metrics.BinaryAccuracy(name='accuracy'), tf.keras.metrics.AUC(name='auc')])
 ```
 
