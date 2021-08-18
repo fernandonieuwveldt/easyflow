@@ -82,7 +82,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
         ]
         encoder = FeatureUnion(steps_list)
         all_feature_inputs, preprocessing_layer = encoder.encode(self.dataset)
-        assert preprocessing_layer.shape[-1] == 4
+        assert preprocessing_layer.shape[-1] == 5
 
 
 def train_model_util(dataset=None, feature_encoding_list=None):
