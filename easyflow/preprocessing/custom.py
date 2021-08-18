@@ -13,3 +13,6 @@ class IdentityPreprocessingLayer(PreprocessingLayer):
     def get_config(self): 
         """Override get_config to ensure saving of models works"""
         return super().get_config().copy()
+
+    def update_state(self, data):
+        return {}
