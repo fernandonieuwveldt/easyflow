@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 import tensorflow as tf
 
-from .custom import IdentityPreprocessingLayer
+from .custom import NumericPreprocessingLayer
 
 
 def one2one_func(x):
@@ -46,7 +46,7 @@ class BaseEncoder(ABC):
         """Check and Map input if any of the preprocessors are None, i.e. use as is"""
         self.feature_encoder_list = list(self.feature_encoder_list)
         name, preprocessor, features = self.feature_encoder_list
-        selector = lambda _preprocessor: _preprocessor or IdentityPreprocessingLayer()
+        selector = lambda _preprocessor: _preprocessor or NumericPreprocessingLayer()
         if isinstance(preprocessor, list):
             self.feature_encoder_list[1] = [selector(_preprocessor) for _preprocessor in preprocessor]
         else:

@@ -78,10 +78,9 @@ def get_unique_vocabulary(dataset=None, features=None):
 
     feature_vocab_list = {}
     for feature in features:
-        feature_ds = dataset.map(map_func)\
-                            .apply(tf.data.experimental.unique())\
-                            .as_numpy_iterator()
-        uniq_vocab = list(feature_ds)
+        uniq_vocab = list(dataset.map(map_func)
+                                 .unique()
+                                 .as_numpy_iterator())
         if all(map(lambda x: isinstance(x, bytes), uniq_vocab)):
             # map bytes to ensure objects are serializable when saving model
             uniq_vocab = [str(value, 'utf-8') for value in uniq_vocab]
