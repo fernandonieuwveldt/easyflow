@@ -4,7 +4,7 @@ from tensorflow.python.keras.engine.base_preprocessing_layer import Preprocessin
 import tensorflow as tf
 
 
-class IdentityPreprocessingLayer(PreprocessingLayer):
+class NumericPreprocessingLayer(PreprocessingLayer):
     """Helper class to apply no preprocessing and use feature as is
     """
     def call(self, inputs):
@@ -13,3 +13,6 @@ class IdentityPreprocessingLayer(PreprocessingLayer):
     def get_config(self): 
         """Override get_config to ensure saving of models works"""
         return super().get_config().copy()
+
+    def update_state(self, data):
+        return {}

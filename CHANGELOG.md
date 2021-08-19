@@ -1,3 +1,9 @@
+## VERSION 1.1.2
+* Bump to tensorflow 2.6.0
+* Apply tf 2.6.0 fixes
+* Changed custom numeric preprocessing layer name from IdentityPreprocessingLayer to NumericPreprocessingLayer
+* remove tf.data experimental unique
+
 ## VERSION 1.1.1
 * Fix README example 2
 
