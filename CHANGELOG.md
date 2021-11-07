@@ -1,3 +1,6 @@
+## VERSION 1.1.3
+* Fixed tensorflow and keras version conflicts
+
 ## VERSION 1.1.2
 * Bump to tensorflow 2.6.0
 * Apply tf 2.6.0 fixes
