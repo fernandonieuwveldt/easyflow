@@ -31,7 +31,7 @@ class Pipeline:
         numeric_features = []
         categoric_features = []
         string_categoric_features = []
-        # change loop over dtypes such that encoders can be created inplace
+        # change loop over dtypes such that encoders can be created in flight
         for feature, _type in dataset.element_spec[0].items():
             if _type.dtype == tf.string:
                 string_categoric_features.append(feature)
