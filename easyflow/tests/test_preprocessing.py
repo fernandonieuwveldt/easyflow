@@ -84,6 +84,24 @@ class TestPreprocessingPipelines(unittest.TestCase):
         all_feature_inputs, preprocessing_layer = encoder.encode(self.dataset)
         assert preprocessing_layer.shape[-1] == 5
 
+    def test_infered_pipeline(self):
+        """test infered pipeline"""
+        encoder = FeatureUnion.from_infered_pipeline(self.dataset)
+        all_feature_inputs, preprocessing_layer = encoder.encode(self.dataset)
+        # setup simple network
+        x = tf.keras.layers.Dense(128, activation="relu")(preprocessing_layer)
+        x = tf.keras.layers.Dropout(0.5)(x)
+        outputs = tf.keras.layers.Dense(1, activation='sigmoid')(x)
+        model = tf.keras.Model(inputs=all_feature_inputs, outputs=outputs)
+        model.compile(
+                    optimizer=tf.keras.optimizers.Adam(),
+                    loss=tf.keras.losses.BinaryCrossentropy(),
+                    metrics=[tf.keras.metrics.BinaryAccuracy(name='accuracy'), tf.keras.metrics.AUC(name='auc')]
+        )
+        history=model.fit(self.dataset, epochs=10)
+        assert len(all_feature_inputs) == 13
+        # test if the model ran through all 10 epochs
+        assert len(history.history['loss']) == 10
 
 def train_model_util(dataset=None, feature_encoding_list=None):
     """help function for testing
@@ -92,7 +110,6 @@ def train_model_util(dataset=None, feature_encoding_list=None):
         dataset (tf.data.Dataset): Features Data to apply encoder on.
         feature_encoding_list (list): [List of encoders of the form: ('name', encoder type, list of features)
     """
-
     encoder = FeatureUnion(feature_encoding_list)
     all_feature_inputs, preprocessing_layer = encoder.encode(dataset)
     # setup simple network
