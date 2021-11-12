@@ -27,7 +27,29 @@ class FeatureColumnTransformer:
     """
     def __init__(self, feature_encoder_list=None):
         self.feature_encoder_list = feature_encoder_list
-        
+
+    @classmethod
+    def infer_feature_transformer(cls, dataset):
+        """Infer standard pipeline for structured data, i.e NumericalFeatureEncoder for numeric
+        features and CategoricalFeatureEncoder for categoric features
+
+        Args:
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
+
+        Returns:
+            (list): basic encoding list
+        """
+        numeric_features = []
+        categoric_features = []
+        for feature, _type in dataset.element_spec[0].items():
+            if _type.dtype in [tf.string, tf.int64]:
+                categoric_features.append(feature)
+            else:
+                numeric_features.append(feature)
+        feature_encoder_list = [('numerical_features', NumericalFeatureEncoder(), numeric_features),
+                                ('categorical_features', CategoricalFeatureEncoder(), categoric_features)]
+        return cls(feature_encoder_list)
+
     def transform(self, dataset):
         """Apply feature encodings on supplied list
 
@@ -83,55 +105,3 @@ class FeatureUnionTransformer(FeatureColumnTransformer):
         if len(feature_layer) == 1:
             return feature_layer_inputs, feature_layer.pop()
         return feature_layer_inputs, tf.keras.layers.concatenate(feature_layer)
-
-
-class InferedFeatureTransformer:
-    """Infer basic encoding list from features dtype
-
-    Examples
-    --------
-    >>> data = {'feature_a': ['a', 'b', 'c', 'c'],
-                'feature_b': [1.1, 1.2, 0.0, 2.2]}
-    >>> target = {'target': [1, 1, 0, 0]}
-    >>> dataset = tf.data.Dataset.from_tensor_slices((data, target)).batch(4)
-    >>> example_batch = next(iter(dataset))
-    >>> encoder = InferedFeatureTransformer()
-    >>> inputs, feature_layer = encoder.transform(dataset)
-
-    """
-    def __init__(self):
-        pass
-
-    def infer_feature_transformer(self, dataset):
-        """Infer standard pipeline for structured data, i.e NumericalFeatureEncoder for numeric
-        features and CategoricalFeatureEncoder for categoric features
-
-        Args:
-            dataset (tf.data.Dataset): Features Data to apply encoder on.
-
-        Returns:
-            (list): basic encoding list
-        """
-        numeric_features = []
-        categoric_features = []
-        for feature, _type in dataset.element_spec[0].items():
-            if _type.dtype == tf.string:
-                categoric_features.append(feature)
-            else:
-                numeric_features.append(feature)
-        return [('numerical_features', NumericalFeatureEncoder(), numeric_features),
-                ('categorical_features', CategoricalFeatureEncoder(), categoric_features)]
-
-    def transform(self, dataset):
-        """Create encoding list from infered transformer and apply FeatureUnionTransformer
-
-        Args:
-            dataset (tf.data.Dataset): Features Data to apply encoder on.
-
-        Returns:
-            (dict, list): Keras inputs for each feature and list of encoders
-        """
-        # need better way to assign encoding list
-        self.feature_encoder_list = self.infer_feature_transformer(dataset)
-        encoder = FeatureUnionTransformer(self.feature_encoder_list)
-        return encoder.transform(dataset)

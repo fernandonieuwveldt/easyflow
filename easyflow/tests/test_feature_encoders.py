@@ -4,7 +4,7 @@ import tensorflow as tf
 
 # local imports
 from easyflow.data import TensorflowDataMapper
-from easyflow.feature_encoders import FeatureUnionTransformer, InferedFeatureTransformer
+from easyflow.feature_encoders import FeatureUnionTransformer
 from easyflow.feature_encoders import NumericalFeatureEncoder, CategoricalFeatureEncoder, BucketizedFeatureEncoder,\
     EmbeddingFeatureEncoder, CategoryCrossingFeatureEncoder
 
@@ -16,6 +16,7 @@ class TestFeatureEncoders(unittest.TestCase):
         """Setup test data and pipeline objects
         """
         dataframe = pd.read_csv('easyflow/tests/test_data/heart.csv')
+        dataframe['age'] *= 1.0
         labels = dataframe.pop("target")
         dataset_mapper = TensorflowDataMapper()
         self.dataset = dataset_mapper.map(dataframe, labels).batch(32)
@@ -53,10 +54,10 @@ class TestFeatureEncoders(unittest.TestCase):
 
     def test_infered_encoding(self):
         """Test the basic infered encoding transformer"""
-        encoding_list = InferedFeatureTransformer().infer_feature_transformer(self.dataset)
-        assert len(encoding_list) == 2
-        assert encoding_list[0][-1] == ['age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg',
-                                        'thalach', 'exang', 'oldpeak', 'slope', 'ca']
+        encoder = FeatureUnionTransformer.infer_feature_transformer(self.dataset)
+        feature_layer_inputs, feature_layer = encoder.transform(self.dataset)
+        # user should ensure dtypes are correct
+        assert feature_layer.shape[-1] == 321
 
 
 if __name__ == '__main__':
