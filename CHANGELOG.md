@@ -1,3 +1,7 @@
+## VERSION 1.2.0
+* Added infered preprocessing Pipeline and FeatureUnion
+* Updated README
+
 ## VERSION 1.1.3
 * Fixed tensorflow and keras version conflicts
 
