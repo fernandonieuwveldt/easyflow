@@ -4,6 +4,8 @@ Feature transforming pipelines/composers using tensorflow feature columns
 
 import tensorflow as tf
 
+from easyflow.feature_encoders import NumericalFeatureEncoder, CategoricalFeatureEncoder
+
 
 class FeatureColumnTransformer:
     """Apply column based transformation on the data
@@ -25,7 +27,29 @@ class FeatureColumnTransformer:
     """
     def __init__(self, feature_encoder_list=None):
         self.feature_encoder_list = feature_encoder_list
-        
+
+    @classmethod
+    def infer_feature_transformer(cls, dataset):
+        """Infer standard pipeline for structured data, i.e NumericalFeatureEncoder for numeric
+        features and CategoricalFeatureEncoder for categoric features
+
+        Args:
+            dataset (tf.data.Dataset): Features Data to apply encoder on.
+
+        Returns:
+            (list): basic encoding list
+        """
+        numeric_features = []
+        categoric_features = []
+        for feature, _type in dataset.element_spec[0].items():
+            if _type.dtype in [tf.string, tf.int64]:
+                categoric_features.append(feature)
+            else:
+                numeric_features.append(feature)
+        feature_encoder_list = [('numerical_features', NumericalFeatureEncoder(), numeric_features),
+                                ('categorical_features', CategoricalFeatureEncoder(), categoric_features)]
+        return cls(feature_encoder_list)
+
     def transform(self, dataset):
         """Apply feature encodings on supplied list
 

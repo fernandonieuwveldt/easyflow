@@ -16,6 +16,7 @@ class TestFeatureEncoders(unittest.TestCase):
         """Setup test data and pipeline objects
         """
         dataframe = pd.read_csv('easyflow/tests/test_data/heart.csv')
+        dataframe['age'] *= 1.0
         labels = dataframe.pop("target")
         dataset_mapper = TensorflowDataMapper()
         self.dataset = dataset_mapper.map(dataframe, labels).batch(32)
@@ -50,6 +51,13 @@ class TestFeatureEncoders(unittest.TestCase):
         assert len(history.history['loss']) == 10
         assert len(feature_layer_inputs) == 13
         assert feature_layer.shape[1] == 45
+
+    def test_infered_encoding(self):
+        """Test the basic infered encoding transformer"""
+        encoder = FeatureUnionTransformer.infer_feature_transformer(self.dataset)
+        feature_layer_inputs, feature_layer = encoder.transform(self.dataset)
+        # user should ensure dtypes are correct
+        assert feature_layer.shape[-1] == 321
 
 
 if __name__ == '__main__':
