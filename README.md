@@ -1,6 +1,12 @@
 Easy Tensorflow:
 
-An interface containing easy tensorflow model building blocks and feature encoding pipelines
+A Keras and Tensorflow native implementation that mimics the functionality of sklearn's Pipeline objects but implemented using Tensorflow. This interface contains easy feature preprocessing pipelines.
+
+Often when we build ML training pipeline we might end up using an pandas, sklearn Pipeline or FeatureUnion composer for preprocessing and feature encoding for example one-hot-encoding our data. Previous implementation was for Tensroflow feature columns, but these will be depracted in future releases. If we end up using a Keras model after preprocessing we end up with multiple artifacts, one for preprocessing and feature engineering from sklearn and the other a Keras saved model. For this case the preprocessing is not part of Keras model which can cause training-serving skew. Recently Keras implemented these same preprocesing transforms as preprocessing layers. Using these layers the Data scientist/Machine learning engineer can implement the preprocessing layers as part neural net architecture which will prevent training-serving skew. One missing component is a  Pipeline type object for Keras preprocessing and Tensorflow feature columns. The EasyFlow project implements these feature preprocessing Pipelines for easier model building with interfaces for both Keras preprocessing layers and Tensroflow feature columns. We also do not use for example pandas dataframes in the Pipeline and use Tensorflow Datasets from the tf.data.Dataset module for faster execution.
+
+Below we will showcase two implementations that can be achieved with easyflow module
+* Preprocessing Pipeline using Keras preprocessing layers with easyflow preprocessing module
+* Preprocessing Pipeline using Tensorflow feature columns with easyflow feature_encoders module
 
 Model file structure:
 ```bash
