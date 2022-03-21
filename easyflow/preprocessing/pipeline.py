@@ -40,9 +40,11 @@ class Pipeline:
             else:
                 numeric_features.append(feature)
 
-        encoding_list = [('numerical_features', Normalization(), numeric_features),
-                         ('categorical_features', IntegerLookup(output_mode='binary'), categoric_features),
-                         ('string_categorical_features', [StringLookup(), IntegerLookup(output_mode='binary')], string_categoric_features)]
+        encoding_list = [
+            ('numerical_features', Normalization(), numeric_features),
+            ('categorical_features', IntegerLookup(output_mode='binary'), categoric_features),
+            ('string_categorical_features', [StringLookup(), IntegerLookup(output_mode='binary')], string_categoric_features)
+        ]
 
         return cls(encoding_list)
 
