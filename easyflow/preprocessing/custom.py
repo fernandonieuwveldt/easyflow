@@ -10,7 +10,7 @@ def FeatureInputLayer(dtype_mapper={}):
         data_type_mapper (dict): Dictionary with feature as key and dtype as value
                                 For example {'age': tf.float32, ...}
     Returns:
-        (dict): Keras inputs for each feature
+        (dict): Keras Input for each feature
     """
     return {
         feature: tf.keras.Input(shape=(1,), name=feature, dtype=dtype)
@@ -34,7 +34,12 @@ class NumericPreprocessingLayer(PreprocessingLayer):
 
 
 class PreprocessingChainer(tf.keras.layers.Layer):
-    """Preprocessing layer that chains one or more layer in sequential order by subclassinig Layer class
+    """Preprocessing layer that chains one or more layer in sequential order by 
+    subclassinig Layer class
+
+    Args:
+        layers_to_adapt (list): List of layer that needs to be adapted
+
     """
 
     def __init__(self, layers_to_adapt, **kwargs):
@@ -43,24 +48,46 @@ class PreprocessingChainer(tf.keras.layers.Layer):
             layers_to_adapt = [layers_to_adapt]
         self.layers_to_adapt = layers_to_adapt
         self.adapted_layers = []
-        # self.pipeline = tf.keras.models.Sequential([])
+        self.pipeline = None
 
     def adapt(self, data):
+        """Adapt layers to adapt sequentially
+
+        Args:
+            data (tf.data.Dataset): Mapped tf.data.Dataset containing only the single feature
+        """
         for layer in self.layers_to_adapt:
             layer.adapt(data)
             self.adapted_layers.append(layer)
             if len(self.layers_to_adapt) >= 2:
-                data = data.map(layer)
+                data = (
+                    data.map(layer)
+                    if isinstance(data, tf.data.Dataset)
+                    else layer(data)
+                )
 
         self.pipeline = tf.keras.models.Sequential(self.adapted_layers)
 
     def call(self, inputs):
+        """Apply sequential model containing adapted layers.
+
+        Args:
+            inputs (tf.data.Dataset): Feature to be adapted as a Mapped Dataset
+
+        Returns:
+            tf.Tensor: returns output after applying adapted layers.
+        """
         return self.pipeline(inputs)
 
     def get_config(self):
+        """Update config with layers_to_adapt attr
+
+        Returns:
+            dict: Updated config
+        """
         config = super().get_config()
         config.update(
-            {"layers_to_adapt": self.layers_to_adapt,}
+            {"layers_to_adapt": self.layers_to_adapt, "pipeline": self.pipeline}
         )
         return config
 
@@ -77,6 +104,11 @@ class SequentialPreprocessingChainer(tf.keras.models.Sequential):
         self.layers_to_adapt = layers_to_adapt
 
     def adapt(self, data):
+        """Adapt layers to adapt sequentially
+
+        Args:
+            data (tf.data.Dataset): Mapped tf.data.Dataset containing only the single feature
+        """
         for counter, layer in enumerate(self.layers_to_adapt, start=0):
             layer.adapt(data)
             super().add(layer)
@@ -84,8 +116,13 @@ class SequentialPreprocessingChainer(tf.keras.models.Sequential):
                 data = data.map(layer)
 
     def get_config(self):
+        """Update config with layers_to_adapt attr
+
+        Returns:
+            dict: Updated config
+        """
         config = super().get_config()
         config.update(
-            {"layers_to_adapt": self.layers_to_adapt,}
+            {"layers_to_adapt": self.layers_to_adapt}
         )
         return config

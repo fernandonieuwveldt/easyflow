@@ -8,17 +8,36 @@ from easyflow.preprocessing.custom import (
 )
 
 
-def one2one_func(x):
-    """helper method to apply one to one preprocessor"""
-    return x
-
-
 def extract_feature_column(dataset, name):
+    """Extract feature from dataset
+
+    Args:
+        dataset (tf.data.Dataset): Training Data
+        name (str): Name of feature to extract
+
+    Returns:
+        tf.data.Dataset: Mapped dataset for supplied feature.
+    """
     feature = dataset.map(lambda x, y: x[name])
     feature = feature.map(lambda x: tf.expand_dims(x, -1))
     return feature
 
 
+class BaseFeaturePreprocessor:
+    """Interface for all Feature Preprocessor
+    """
+    pass
+
+
+class BaseFeaturePreprocessorFromTensorflowDataset(BaseFeaturePreprocessor):
+    pass
+
+
+class BaseFeaturePreprocessorFromPandasDataFrame(BaseFeaturePreprocessor):
+    pass
+
+
+# Will be our factory
 class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
     """Apply column based transformation on the data using tf.keras  preprocessing layers.
 
@@ -34,14 +53,14 @@ class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
 
     @classmethod
     def from_infered_pipeline(cls, dataset):
-        """Infer standard pipeline for structured data, i.e NumericalFeatureEncoder for numeric
-        features and CategoricalFeatureEncoder for categoric features
+        """Infer standard pipeline for structured data, i.e Normalization for numerical
+        features and StringLookup/IntegerLookup for categoric features
 
         Args:
             dataset (tf.data.Dataset): Features Data to apply encoder on.
 
         Returns:
-            (list): basic encoding list
+            BaseFeaturePreprocessorLayer: Initilized BaseFeaturePreprocessorLayer object
         """
         if isinstance(dataset, tf.data.Dataset):
             feature_preprocessor_list = cls._infer_from_tf_data(dataset)
@@ -49,6 +68,14 @@ class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
 
     @staticmethod
     def _infer_from_tf_data(dataset):
+        """Infer preprocessing spec from tf.data.Dataset type
+
+        Args:
+            dataset (tf.data.Dataset): Training data that contains features and/or target
+
+        Returns:
+            list: steps for preprocessing list
+        """
         numeric_features = []
         categoric_features = []
         string_categoric_features = []
@@ -80,11 +107,25 @@ class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
 
     @staticmethod
     def _infer_from_pandas_data_frame(dataset):
+        """Infer preprocessing spec from pandas.DataFrame type
+
+        Args:
+            dataset (pandas.DataFrame): Training data that contains features and/or target
+
+        Returns:
+            list: steps for preprocessing list
+        """
         return []
 
     def map_preprocessor(self, steps):
         """Check and Map input if any of the preprocessors are None, i.e. use as is. For 
-        example Binary features that don't need further preprocessing        
+        example Binary features that don't need further preprocessing   
+
+        Args:
+            steps (list): Preprocessing steps.
+
+        Returns:
+            list: List of mapped preprocessors if None was supplied.
         """
         selector = lambda _preprocessor: _preprocessor or NumericPreprocessingLayer()
         return [
@@ -92,12 +133,17 @@ class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
         ]
 
     def adapt_tf_dataset(self, dataset):
-        for _, preproc_steps, features in self.feature_preprocessor_list:
+        """Adapt layers from tf.data.Dataset source type.
+
+        Args:
+            dataset (tf.data.Dataset): Training data.
+        """
+        for _, preprocessor, features in self.feature_preprocessor_list:
             # get initial preprocessing layer config
-            config = preproc_steps.get_config()
-            for feature in features:
+            config = preprocessor.get_config()
+            for k, feature in enumerate(features):
                 # get a fresh preprocessing instance
-                cloned_preprocessor = preproc_steps.from_config(config)
+                cloned_preprocessor = preprocessor if k==0 else preprocessor.from_config(config)
                 feature_ds = extract_feature_column(dataset, feature)
                 # check if layer has adapt method
                 cloned_preprocessor.adapt(feature_ds)
@@ -105,17 +151,56 @@ class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
 
     def adapt_pandas_dataset(self, dataset):
         # To be implemented
-        return []
+        """Adapt layers from pandas.DataFrame as source type.
+
+        Args:
+            dataset (pandas.DataFrame): Training data.
+        """
+        raise NotImplementedError
 
     def adapt(self, dataset):
+        """Adapt preprocessing layers.
+
+        Args:
+            dataset ([pandas.DataFrame, tf.data.Dataset]): Training data.
+        """
         if isinstance(dataset, tf.data.Dataset):
-            return self.adapt_tf_dataset(dataset)
+            self.adapt_tf_dataset(dataset)
 
     def call(self, inputs):
-        forward_pass_list = {}
+        """Apply adapted layers on new data
+
+        Args:
+            inputs (dict): Dictionary of Tensors.
+
+        Returns:
+            dict: Dict of Tensors
+        """
+        forward_pass = {}
         for name, _, features in self.feature_preprocessor_list:
-            forward_pass_list[name] = [
+            forward_pass[name] = [
                 self.adapted_preprocessors[feature](inputs[feature])
                 for feature in features
             ]
-        return forward_pass_list
+        return forward_pass
+
+    def __getitem__(self, idx):
+        # This should rather return the adapted layers for the specific step
+        return self.feature_preprocessor_list[idx]
+
+    def __len__(self):
+        """Total number of steps
+
+        Returns:
+            int: Total number of steps
+        """
+        return len(self.feature_preprocessor_list)
+
+    @property
+    def preprocessor_name(self):
+        """Return the step names
+
+        Returns:
+            list: List of step names
+        """
+        return [self[k][0] for k in range(len(self))]
