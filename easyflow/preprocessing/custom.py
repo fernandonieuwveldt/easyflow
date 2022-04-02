@@ -36,6 +36,7 @@ class NumericPreprocessingLayer(PreprocessingLayer):
 class PreprocessingChainer(tf.keras.layers.Layer):
     """Preprocessing layer that chains one or more layer in sequential order by subclassinig Layer class
     """
+
     def __init__(self, layers_to_adapt, **kwargs):
         super(PreprocessingChainer, self).__init__(**kwargs)
         if not isinstance(layers_to_adapt, (list, tuple)):
@@ -68,6 +69,7 @@ class SequentialPreprocessingChainer(tf.keras.models.Sequential):
     """Preprocessing model that chains one or more layers in sequential order by subclassing 
     sequential model class.
     """
+
     def __init__(self, layers_to_adapt=[], **kwargs):
         super(SequentialPreprocessingChainer, self).__init__(layers=[], **kwargs)
         if not isinstance(layers_to_adapt, (list, tuple)):
@@ -87,4 +89,3 @@ class SequentialPreprocessingChainer(tf.keras.models.Sequential):
             {"layers_to_adapt": self.layers_to_adapt,}
         )
         return config
-
