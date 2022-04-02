@@ -94,7 +94,7 @@ class PreprocessingChainer(tf.keras.layers.Layer):
 
 class SequentialPreprocessingChainer(tf.keras.models.Sequential):
     """Preprocessing model that chains one or more layers in sequential order by subclassing 
-    sequential model class.
+    Sequential model class.
     """
 
     def __init__(self, layers_to_adapt=[], **kwargs):
