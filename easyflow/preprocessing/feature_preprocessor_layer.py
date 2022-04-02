@@ -4,7 +4,7 @@ from tensorflow.keras import layers
 
 from easyflow.preprocessing.custom import (
     NumericPreprocessingLayer,
-    PreprocessingChainer,
+    SequentialPreprocessingChainer,
 )
 
 
@@ -97,7 +97,7 @@ class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
             ),
             (
                 "string_categorical_features",
-                PreprocessingChainer(
+                SequentialPreprocessingChainer(
                     [layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]
                 ),
                 string_categoric_features,
