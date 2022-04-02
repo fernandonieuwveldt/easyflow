@@ -4,6 +4,20 @@ from tensorflow.python.keras.engine.base_preprocessing_layer import Preprocessin
 import tensorflow as tf
 
 
+def FeatureInputLayer(dtype_mapper={}):
+    """Create model inputs
+    Args:
+        data_type_mapper (dict): Dictionary with feature as key and dtype as value
+                                For example {'age': tf.float32, ...}
+    Returns:
+        (dict): Keras inputs for each feature
+    """
+    return {
+        feature: tf.keras.Input(shape=(1,), name=feature, dtype=dtype)
+        for feature, dtype in dtype_mapper.items()
+    }
+
+
 class NumericPreprocessingLayer(PreprocessingLayer):
     """Helper class to apply no preprocessing and use feature as is
     """
@@ -19,9 +33,11 @@ class NumericPreprocessingLayer(PreprocessingLayer):
         return {}
 
 
-class Pipeline(tf.keras.layers.Layer):
+class PreprocessingChainer(tf.keras.layers.Layer):
+    """Preprocessing layer that chains one or more layer in sequential order by subclassinig Layer class
+    """
     def __init__(self, layers_to_adapt, **kwargs):
-        super(Pipeline, self).__init__(**kwargs)
+        super(PreprocessingChainer, self).__init__(**kwargs)
         if not isinstance(layers_to_adapt, (list, tuple)):
             layers_to_adapt = [layers_to_adapt]
         self.layers_to_adapt = layers_to_adapt
@@ -48,15 +64,17 @@ class Pipeline(tf.keras.layers.Layer):
         return config
 
 
-class _Pipeline(tf.keras.models.Sequential):
+class SequentialPreprocessingChainer(tf.keras.models.Sequential):
+    """Preprocessing model that chains one or more layers in sequential order by subclassing 
+    sequential model class.
+    """
     def __init__(self, layers_to_adapt=[], **kwargs):
-        super(_Pipeline, self).__init__(layers=[], **kwargs)
+        super(SequentialPreprocessingChainer, self).__init__(layers=[], **kwargs)
         if not isinstance(layers_to_adapt, (list, tuple)):
             layers_to_adapt = [layers_to_adapt]
         self.layers_to_adapt = layers_to_adapt
 
     def adapt(self, data):
-        # perhaps recursion will sort out issue below
         for counter, layer in enumerate(self.layers_to_adapt, start=0):
             layer.adapt(data)
             super().add(layer)
@@ -70,29 +88,3 @@ class _Pipeline(tf.keras.models.Sequential):
         )
         return config
 
-    # def feature_extractor(self, dataset):
-    #     # extract_and_combine = tf.data.Dataset.zip(
-    #     #     tuple(extract_feature_column(dataset, feature) for feature in features)
-    #     #     ).as_numpy_iterator()
-    #     features = ["age", "trestbps", "chol", "thalach", "oldpeak", "slope"]
-    #     return {feature: tf.expand_dims(dataset[feature], -1) for feature in features}
-
-    # def _adapt(self, dataset):
-    #     features_data = dataset.map(lambda features, _: features)
-    #     for name, preproc_steps, features in self.feature_preprocessor_list:
-    #         feature_ds = features_data.map(self.feature_extractor)
-    #         # feature_ds = tf.keras.layers.concatenate(feature_ds)
-    #         pipeline = Pipeline(layers_to_adapt=preproc_steps)
-    #         pipeline.adapt(feature_ds)
-    #         self.adapted_preprocessors[features] = pipeline
-    # def call(self, inputs):
-    #     forward_pass_list = []
-    #     for _, _, features in self.feature_preprocessor_list:
-    #         for feature in features:
-    #             feature_ds = inputs[feature]
-    #             # feature_ds = extract_feature_column(inputs, feature)
-    #             # layer = self.adapted_preprocessors[feature]
-    #             feature_ds = self.adapted_preprocessors[feature](inputs[feature])
-    #             # feature_ds = feature_ds.map(self.adapted_preprocessors[feature])
-    #             forward_pass_list.append(feature_ds)
-    #     return tf.keras.layers.concatenate(forward_pass_list)
