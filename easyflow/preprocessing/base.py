@@ -22,36 +22,42 @@ class BaseEncoder(ABC):
     Args:
         feature_encoder_list : List of encoders of the form: ('name', encoder type, list of features)
     """
-    def __init__(self, feature_encoder_list=None):
-        self.feature_encoder_list = feature_encoder_list
-        _, _, features = self.feature_encoder_list
-        # map and validate encoding list
-        self.map_preprocessor()
-        self.validate_encoding_list()
-        self.feature_encoder_list = self.remap(self.feature_encoder_list)
-        self.adapted_preprocessors = {feature_name: one2one_func for feature_name in features}
 
-    def validate_encoding_list(self):
+    def __init__(self, feature_encoder_list=None):
+        # map and validate encoding list
+        _, _, features = feature_encoder_list
+        feature_encoder_list = self.map_preprocessor(feature_encoder_list)
+        self.validate_encoding_list(feature_encoder_list)
+        self.feature_encoder_list = self.remap(feature_encoder_list)
+        self.adapted_preprocessors = {
+            feature_name: one2one_func for feature_name in features
+        }
+
+    def validate_encoding_list(self, steps):
         """Validate that all prepocessorts has adapt method"""
-        name, preprocessors, features = self.feature_encoder_list
+        _, preprocessors, _ = steps
         if not isinstance(preprocessors, list):
             preprocessors = [preprocessors]
 
         for preprocessor in preprocessors:
             if not hasattr(preprocessor, "adapt"):
-                raise TypeError("All preprocessing/encoding layers should have adapt method"
-                                "'%s' (type %s) doesn't" % (preprocessor, type(preprocessor)))
+                raise TypeError(
+                    "All preprocessing/encoding layers should have adapt method"
+                    "'%s' (type %s) doesn't" % (preprocessor, type(preprocessor))
+                )
 
-    def map_preprocessor(self):
+    def map_preprocessor(self, steps):
         """Check and Map input if any of the preprocessors are None, i.e. use as is"""
-        self.feature_encoder_list = list(self.feature_encoder_list)
-        name, preprocessor, features = self.feature_encoder_list
+        steps = list(steps)
+        name, preprocessor, _ = steps
         selector = lambda _preprocessor: _preprocessor or NumericPreprocessingLayer()
         if isinstance(preprocessor, list):
-            self.feature_encoder_list[1] = [selector(_preprocessor) for _preprocessor in preprocessor]
+            steps[1] = [
+                selector(_preprocessor) for _preprocessor in preprocessor
+            ]
         else:
-            self.feature_encoder_list[1] = selector(preprocessor)
-        self.feature_encoder_list = tuple(self.feature_encoder_list)
+            steps[1] = selector(preprocessor)
+        return tuple(steps)
 
     def remap(self, steps):
         """Map multiple encoders to single encoders. If sequence of encoders are applied on features they will remapped.
@@ -62,9 +68,9 @@ class BaseEncoder(ABC):
         Returns:
             (list): List of remapped sequential encoders
         """
-        name, preprocessors, features = self.feature_encoder_list
+        name, preprocessors, features = steps
         if not isinstance(preprocessors, list):
-            return self.feature_encoder_list
+            return steps
         return [(name, preprocessor, features) for preprocessor in preprocessors]
 
     @abstractmethod
@@ -88,7 +94,10 @@ class BaseEncoder(ABC):
         Returns:
             list: list of Keras Input layers
         """
-        return [tf.keras.Input(shape=(1,), name=feature, dtype=dtype) for feature in features]
+        return [
+            tf.keras.Input(shape=(1,), name=feature, dtype=dtype)
+            for feature in features
+        ]
 
     def _encode_one(self, dataset, preprocessor, features, feature_inputs):
         """Apply feature encodings on supplied list
@@ -103,11 +112,13 @@ class BaseEncoder(ABC):
             (dict): dictionary with feature as key and encoded preprocessing layer as value 
         """
         encoded_features = {}
-        # get initial preprocessing layer config 
+        # get initial preprocessing layer config
         config = preprocessor.get_config()
-        for k, (feature_input, feature_name) in enumerate(zip(feature_inputs, features)):
-            config.pop('name', None)
-            _preprocessor = preprocessor if k==0 else preprocessor.from_config(config)
+        for k, (feature_input, feature_name) in enumerate(
+            zip(feature_inputs, features)
+        ):
+            config.pop("name", None)
+            _preprocessor = preprocessor if k == 0 else preprocessor.from_config(config)
             feature_ds = extract_feature_column(dataset, feature_name)
             feature_ds = feature_ds.map(self.adapted_preprocessors[feature_name])
             _preprocessor.adapt(feature_ds)
@@ -131,6 +142,7 @@ class _BaseSingleEncoder(BaseEncoder):
     """
     Preprocess each feature based on specified preprocessing layer contained in feature_encoder_list
     """
+
     def __init__(self, feature_encoder_list=None):
         super().__init__(feature_encoder_list=feature_encoder_list)
 
@@ -145,7 +157,9 @@ class _BaseSingleEncoder(BaseEncoder):
         """
         name, preprocessor, features = self.feature_encoder_list
         feature_inputs = self.create_inputs(features, preprocessor.dtype)
-        encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
+        encoded_features = self._encode_one(
+            dataset, preprocessor, features, feature_inputs
+        )
         return feature_inputs, encoded_features
 
 
@@ -153,6 +167,7 @@ class _BaseMultipleEncoder(BaseEncoder):
     """
     Preprocessing pipeline to apply multiple encoders in serie
     """
+
     def __init__(self, feature_encoder_list=None):
         super().__init__(feature_encoder_list=feature_encoder_list)
 
@@ -167,11 +182,15 @@ class _BaseMultipleEncoder(BaseEncoder):
         """
         name, preprocessor, features = self.feature_encoder_list[0]
         feature_inputs = self.create_inputs(features, preprocessor.dtype)
-        encoded_features = self._encode_one(dataset, preprocessor, features, feature_inputs)
+        encoded_features = self._encode_one(
+            dataset, preprocessor, features, feature_inputs
+        )
         if len(self.feature_encoder_list) == 1:
             # _BaseMultipleEncoder use case is for multiple encoders applied on the same features
-            # It should never have only one encoder. Adding this step for robustness
+            # It should never have only one encoder. Adding this step for completeness
             return feature_inputs, encoded_features
         for (name, preprocessor, features) in self.feature_encoder_list[1:]:
-            encoded_features = self._encode_one(dataset, preprocessor, features, [v for v in encoded_features.values()])
+            encoded_features = self._encode_one(
+                dataset, preprocessor, features, [v for v in encoded_features.values()]
+            )
         return feature_inputs, encoded_features
