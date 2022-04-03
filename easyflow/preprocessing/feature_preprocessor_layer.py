@@ -56,14 +56,14 @@ class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
         return self.preprocessor_flow(inputs)
 
 
-class BaseFeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer):
+class BaseFeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeaturePreprocessor):
     """Feature Layer for Tensorflow Dataset type
     """
 
     def __init__(self, feature_preprocessor_list=[], *args, **kwargs):
         super(BaseFeaturePreprocessorFromTensorflowDataset, self).__init__(*args, *kwargs)
         self.feature_preprocessor_list = feature_preprocessor_list
-        # self.feature_preprocessor_list = self.map_preprocessor(self.feature_preprocessor_list)
+        self.feature_preprocessor_list = self.map_preprocessor(self.feature_preprocessor_list)
         self.adapted_preprocessors = {}
 
     def adapt(self, dataset):
