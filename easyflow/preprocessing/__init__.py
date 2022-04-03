@@ -1,10 +1,21 @@
 """Preprocessing pipelines 
 """
 
-from easyflow.preprocessing.pipeline import FeaturePreprocessor, FeaturePreprocessorUnion
-from easyflow.preprocessing.custom import NumericPreprocessingLayer
+from easyflow.preprocessing.pipeline import (
+    FeaturePreprocessor,
+    FeaturePreprocessorUnion,
+)
+from easyflow.preprocessing.custom import (
+    FeatureInputLayer,
+    NumericPreprocessingLayer,
+    SequentialPreprocessingChainer,
+)
 
 
-__all__ = ["FeaturePreprocessor",
-           "FeaturePreprocessorUnion",
-           "NumericPreprocessingLayer"]
+__all__ = [
+    "FeatureInputLayer",
+    "FeaturePreprocessor",
+    "FeaturePreprocessorUnion",
+    "NumericPreprocessingLayer",
+    "SequentialPreprocessingChainer",
+]
