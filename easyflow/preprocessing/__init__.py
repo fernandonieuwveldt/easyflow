@@ -10,6 +10,11 @@ from easyflow.preprocessing.custom import (
     NumericPreprocessingLayer,
     SequentialPreprocessingChainer,
 )
+# This will be removed from later versions. Raises exception when initialised
+from easyflow.preprocessing.pipeline import (
+    Pipeline,
+    FeatureUnion,
+)
 
 
 __all__ = [
@@ -18,4 +23,7 @@ __all__ = [
     "FeaturePreprocessorUnion",
     "NumericPreprocessingLayer",
     "SequentialPreprocessingChainer",
+    # Below will be removed
+    "Pipeline",
+    "FeatureUnion"
 ]
