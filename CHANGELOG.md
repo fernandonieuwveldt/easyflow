@@ -1,7 +1,7 @@
 ## VERSION 1.3.0
-* Refactor by implemented best practices from Keras and Tensorflow
+* Refactor by implementing best practices from Keras and Tensorflow
 * Layer's subclass layer class and implemented new custom layers
-    - FeatureInputLayer
+    - FeatureInputLayer: Dict of Input layers
     - PreprocessingChainer: Adapt's multiple preprocessing layers
                             (Subclasses Layer)
     - SequentialPreprocessingChainer: Adapt's multiple preprocessing layers
