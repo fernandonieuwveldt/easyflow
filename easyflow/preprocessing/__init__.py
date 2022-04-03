@@ -1,12 +1,10 @@
 """Preprocessing pipelines 
 """
 
-from .pipeline import _BaseSingleEncoder, _BaseMultipleEncoder, Pipeline, FeatureUnion
-from .custom import NumericPreprocessingLayer
+from easyflow.preprocessing.pipeline import FeaturePreprocessor, FeaturePreprocessorUnion
+from easyflow.preprocessing.custom import NumericPreprocessingLayer
 
 
-__all__ = ["_BaseSingleEncoder",
-           "_BaseMultipleEncoder",
-           "Pipeline",
-           "FeatureUnion",
+__all__ = ["FeaturePreprocessor",
+           "FeaturePreprocessorUnion",
            "NumericPreprocessingLayer"]
