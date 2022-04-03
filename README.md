@@ -8,57 +8,27 @@ Below we will showcase two implementations that can be achieved with easyflow mo
 * Preprocessing Pipeline using Keras preprocessing layers with easyflow preprocessing module
 * Preprocessing Pipeline using Tensorflow feature columns with easyflow feature_encoders module
 
-Model file structure:
-```bash
-├── easyflow
-│   ├── __init__.py
-│   ├── data
-│   │   ├── __init__.py
-│   │   ├── mapper.py
-│   ├── feature_encoders
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   ├── categorical_encoders.py
-│   │   ├── numerical_encoders.py
-│   │   └── pipeline.py
-│   ├── preprocessing
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   ├── custom.py
-│   │   ├── pipeline.py
-│   └── tests
-│       ├── __init__.py
-│       ├── test_data
-│       │   └── heart.csv
-│       ├── test_feature_encoders.py
-│       └── test_preprocessing.py
-├── notebooks
-│   ├── feature_column_example.ipynb
-│   └── preprocessing_example.ipynb
-├── CHANGELOG.md
-├── LICENSE
-├── MANIFEST.in
-├── README.md
-├── requirements.txt
-└── setup.py
-```
-
 ## To install package:
 ```bash
 pip install easy-tensorflow
 ```
 
-# Example 1: Preprocessing Pipeline and FeatureUnion example
+# Example 1: Preprocessing Pipeline and FeaturePreprocessorUnion example
 The easyflow.preprocessing module contains functionality similar to what sklearn does with its Pipeline, FeatureUnion and ColumnTransformer does. Full example also in notebooks folder
 
 ```python
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.layers.experimental.preprocessing import Normalization, StringLookup, IntegerLookup
+from tensorflow.keras.layers import Normalization, StringLookup, IntegerLookup
 
 # local imports
 from easyflow.data import TensorflowDataMapper
-from easyflow.preprocessing import FeatureUnion
+from easyflow.preprocessing import FeaturePreprocessorUnion
+from easyflow.preprocessing.custom import (
+    FeatureInputLayer,
+    SequentialPreprocessingChainer,
+)
+
 ```
 
 ### Read in data and map as tf.data.Dataset
@@ -83,20 +53,41 @@ NUMERICAL_FEATURES = ['age', 'trestbps', 'chol', 'thalach', 'oldpeak', 'slope']
 CATEGORICAL_FEATURES = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'ca']
 # thal is represented as a string
 STRING_CATEGORICAL_FEATURES = ['thal']
+
+dtype_mapper = {
+    "age": tf.float32,
+    "sex": tf.float32,
+    "cp": tf.float32,
+    "trestbps": tf.float32,
+    "chol": tf.float32,
+    "fbs": tf.float32,
+    "restecg": tf.float32,
+    "thalach": tf.float32,
+    "exang": tf.float32,
+    "oldpeak": tf.float32,
+    "slope": tf.float32,
+    "ca": tf.float32,
+    "thal": tf.string,
+}
 ```
 
 ### Setup Preprocessing layer using FeatureUnion
 
 ```python
-feature_encoder_list = [
-                        ('numeric_encoder', Normalization(), NUMERICAL_FEATURES),
-                        ('categorical_encoder', IntegerLookup(output_mode='binary'), CATEGORICAL_FEATURES),
-                        # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
-                        ('string_encoder', [StringLookup(), IntegerLookup(output_mode='binary')], STRING_CATEGORICAL_FEATURES)
-                        ]
+feature_preprocessor_list = [
+    ('numeric_encoder', Normalization(), NUMERICAL_FEATURES),
+    ('categorical_encoder', IntegerLookup(output_mode='binary'), CATEGORICAL_FEATURES),
+    # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
+    ('string_encoder', 
+     SequentialPreprocessingChainer([StringLookup(), IntegerLookup(output_mode='binary')]),
+     STRING_CATEGORICAL_FEATURES)
+]
 
-encoder = FeatureUnion(feature_encoder_list)
-all_feature_inputs, preprocessing_layer = encoder.encode(dataset)
+preprocessor = FeaturePreprocessorUnion(feature_preprocessor_list)
+preprocessor.adapt(train_data_set)
+
+feature_layer_inputs = FeatureInputLayer(dtype_mapper)
+preprocessing_layer = preprocessor(feature_layer_inputs)
 ```
 
 ### Set up network
@@ -105,12 +96,11 @@ all_feature_inputs, preprocessing_layer = encoder.encode(dataset)
 x = tf.keras.layers.Dense(128, activation="relu")(preprocessing_layer)
 x = tf.keras.layers.Dropout(0.5)(x)
 outputs = tf.keras.layers.Dense(1, activation='sigmoid')(x)
-model = tf.keras.Model(inputs=all_feature_inputs, outputs=outputs)
+model = tf.keras.Model(inputs=feature_layer_inputs, outputs=outputs)
 model.compile(
     optimizer=tf.keras.optimizers.Adam(),
     loss=tf.keras.losses.BinaryCrossentropy(),
     metrics=[tf.keras.metrics.BinaryAccuracy(name='accuracy'), tf.keras.metrics.AUC(name='auc')])
-
 ```
 
 ### Fit model
