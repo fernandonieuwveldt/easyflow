@@ -10,7 +10,7 @@ from tensorflow.keras import layers
 # local imports
 from easyflow.data import TensorflowDataMapper
 from easyflow.preprocessing import FeaturePreprocessorUnion
-from easyflow.preprocessing.custom import (
+from easyflow.preprocessing import (
     FeatureInputLayer,
     SequentialPreprocessingChainer,
 )
