@@ -23,20 +23,6 @@ def extract_feature_column(dataset, name):
     return feature
 
 
-class BaseFeaturePreprocessor:
-    """Interface for all Feature Preprocessor
-    """
-    pass
-
-
-class BaseFeaturePreprocessorFromTensorflowDataset(BaseFeaturePreprocessor):
-    pass
-
-
-class BaseFeaturePreprocessorFromPandasDataFrame(BaseFeaturePreprocessor):
-    pass
-
-
 # Will be our factory
 class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
     """Apply column based transformation on the data using tf.keras  preprocessing layers.
@@ -53,21 +39,6 @@ class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
 
     @classmethod
     def from_infered_pipeline(cls, dataset):
-        """Infer standard pipeline for structured data, i.e Normalization for numerical
-        features and StringLookup/IntegerLookup for categoric features
-
-        Args:
-            dataset (tf.data.Dataset): Features Data to apply encoder on.
-
-        Returns:
-            BaseFeaturePreprocessorLayer: Initilized BaseFeaturePreprocessorLayer object
-        """
-        if isinstance(dataset, tf.data.Dataset):
-            feature_preprocessor_list = cls._infer_from_tf_data(dataset)
-            return cls(feature_preprocessor_list)
-
-    @staticmethod
-    def _infer_from_tf_data(dataset):
         """Infer preprocessing spec from tf.data.Dataset type
 
         Args:
@@ -103,19 +74,7 @@ class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
                 string_categoric_features,
             ),
         ]
-        return feature_preprocessor_list
-
-    @staticmethod
-    def _infer_from_pandas_data_frame(dataset):
-        """Infer preprocessing spec from pandas.DataFrame type
-
-        Args:
-            dataset (pandas.DataFrame): Training data that contains features and/or target
-
-        Returns:
-            list: steps for preprocessing list
-        """
-        return []
+        return cls(feature_preprocessor_list)
 
     def map_preprocessor(self, steps):
         """Check and Map input if any of the preprocessors are None, i.e. use as is. For 
@@ -132,7 +91,7 @@ class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
             (name, selector(preprocessor), step) for name, preprocessor, step in steps
         ]
 
-    def adapt_tf_dataset(self, dataset):
+    def adapt(self, dataset):
         """Adapt layers from tf.data.Dataset source type.
 
         Args:
@@ -148,24 +107,6 @@ class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
                 # check if layer has adapt method
                 cloned_preprocessor.adapt(feature_ds)
                 self.adapted_preprocessors[feature] = cloned_preprocessor
-
-    def adapt_pandas_dataset(self, dataset):
-        # To be implemented
-        """Adapt layers from pandas.DataFrame as source type.
-
-        Args:
-            dataset (pandas.DataFrame): Training data.
-        """
-        raise NotImplementedError
-
-    def adapt(self, dataset):
-        """Adapt preprocessing layers.
-
-        Args:
-            dataset ([pandas.DataFrame, tf.data.Dataset]): Training data.
-        """
-        if isinstance(dataset, tf.data.Dataset):
-            self.adapt_tf_dataset(dataset)
 
     def call(self, inputs):
         """Apply adapted layers on new data
