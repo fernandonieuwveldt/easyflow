@@ -28,7 +28,7 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
             for k, feature in enumerate(features):
                 # get a fresh preprocessing instance
                 cloned_preprocessor = preprocessor if k==0 else preprocessor.from_config(config)
-                feature_ds = extract_feature_column(dataset, feature)
+                feature_ds = extract_feature_column_tensorflow(dataset, feature)
                 # check if layer has adapt method
                 cloned_preprocessor.adapt(feature_ds)
                 self.adapted_preprocessors[feature] = cloned_preprocessor
@@ -98,8 +98,43 @@ class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeatureP
         self.feature_preprocessor_list = self.map_preprocessor(feature_preprocessor_list)
         self.adapted_preprocessors = dict()
 
+    def adapt(self, dataset):
+        """Adapt layers from tf.data.Dataset source type.
 
-def extract_feature_column(dataset, name):
+        Args:
+            dataset (tf.data.Dataset): Training data.
+        """
+        for _, preprocessor, features in self.feature_preprocessor_list:
+            # get initial preprocessing layer config
+            config = preprocessor.get_config()
+            for k, feature in enumerate(features):
+                # get a fresh preprocessing instance
+                cloned_preprocessor = preprocessor if k==0 else preprocessor.from_config(config)
+                feature_ds = extract_feature_column_pandas(dataset, feature)
+                # check if layer has adapt method
+                cloned_preprocessor.adapt(feature_ds)
+                self.adapted_preprocessors[feature] = cloned_preprocessor
+
+    @tf.function
+    def call(self, inputs):
+        """Apply adapted layers on new data
+
+        Args:
+            inputs (dict): Dictionary of Tensors.
+
+        Returns:
+            dict: Dict of Tensors
+        """
+        forward_pass = dict()
+        for name, _, features in self.feature_preprocessor_list:
+            forward_pass[name] = [
+                self.adapted_preprocessors[feature](inputs[feature])
+                for feature in features
+            ]
+        return forward_pass
+
+
+def extract_feature_column_tensorflow(dataset, name):
     """Extract feature from dataset
 
     Args:
@@ -112,3 +147,16 @@ def extract_feature_column(dataset, name):
     feature = dataset.map(lambda x, y: x[name])
     feature = feature.map(lambda x: tf.expand_dims(x, -1))
     return feature
+
+
+def extract_feature_column_pandas(dataset, name):
+    """Extract feature from dataset
+
+    Args:
+        dataset (pd.DataFrame): Training Data
+        name (str): Name of feature to extract
+
+    Returns:
+        array: numpy array of supplied feature.
+    """
+    return dataset[name].values

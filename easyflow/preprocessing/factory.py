@@ -67,4 +67,7 @@ class FeaturePreprocessorFactory(tf.keras.models.Model):
         Returns:
             dict: Dict of Tensors
         """
+        if not self.preprocessor_flow:
+            raise Exception("First run adapt before forward pass.")
+
         return self.preprocessor_flow(inputs)
