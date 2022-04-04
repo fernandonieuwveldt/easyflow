@@ -1,3 +1,18 @@
+## VERSION 1.3.0
+* Refactor by implementing best practices from Keras and Tensorflow
+* Layer's subclass layer class and implemented new custom layers
+    - FeatureInputLayer: Dict of Input layers
+    - PreprocessingChainer: Adapt's multiple preprocessing layers
+                            (Subclasses Layer)
+    - SequentialPreprocessingChainer: Adapt's multiple preprocessing layers
+                                      (Subclasses Sequential model)
+* Main interface is now subclassing Layer class:
+    - BaseFeaturePreprocessorLayer: This class also implements adapt method
+* New interfaces:
+    - FeaturePreprocessor: Outputs a layer for each step
+    - FeaturePreprocessorUnion: Concatenates steps into single layer
+* Deprecated previous class Pipeline and FeatureUnion
+
 ## VERSION 1.2.0
 * Added infered preprocessing Pipeline and FeatureUnion
 * Updated README
