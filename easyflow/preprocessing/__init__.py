@@ -8,6 +8,7 @@ from easyflow.preprocessing.pipeline import (
 from easyflow.preprocessing.custom import (
     FeatureInputLayer,
     NumericPreprocessingLayer,
+    PreprocessingChainer, 
     SequentialPreprocessingChainer,
 )
 
@@ -17,5 +18,6 @@ __all__ = [
     "FeaturePreprocessor",
     "FeaturePreprocessorUnion",
     "NumericPreprocessingLayer",
+    "PreprocessingChainer",
     "SequentialPreprocessingChainer",
 ]

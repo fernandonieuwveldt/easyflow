@@ -4,7 +4,7 @@ from tensorflow.python.keras.engine.base_preprocessing_layer import Preprocessin
 import tensorflow as tf
 
 
-def FeatureInputLayer(dtype_mapper={}):
+def FeatureInputLayer(dtype_mapper=dict()):
     """Create model inputs
     Args:
         data_type_mapper (dict): Dictionary with feature as key and dtype as value
@@ -30,7 +30,7 @@ class NumericPreprocessingLayer(PreprocessingLayer):
         return super().get_config().copy()
 
     def update_state(self, data):
-        return {}
+        return dict()
 
 
 class PreprocessingChainer(tf.keras.layers.Layer):
@@ -39,7 +39,6 @@ class PreprocessingChainer(tf.keras.layers.Layer):
 
     Args:
         layers_to_adapt (list): List of layer that needs to be adapted
-
     """
 
     def __init__(self, layers_to_adapt, **kwargs):
@@ -113,7 +112,11 @@ class SequentialPreprocessingChainer(tf.keras.models.Sequential):
             layer.adapt(data)
             super().add(layer)
             if len(self.layers_to_adapt) > counter:
-                data = data.map(layer)
+                data = (
+                    data.map(layer)
+                    if isinstance(data, tf.data.Dataset)
+                    else layer(data)
+                )
 
     def get_config(self):
         """Update config with layers_to_adapt attr

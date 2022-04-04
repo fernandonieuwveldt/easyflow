@@ -6,65 +6,15 @@ from easyflow.preprocessing.custom import SequentialPreprocessingChainer
 from easyflow.preprocessing.base import BaseFeaturePreprocessor
 
 
-class BaseFeaturePreprocessorLayer(tf.keras.layers.Layer):
-    """Apply column based transformation on the data using tf.keras  preprocessing layers.
-
-    Args:
-        feature_encoder_list : List of encoders of the form: ('name', encoder type, list of features)
-    """
-
-    def __init__(self, feature_preprocessor_list=[], *args, **kwargs):
-        super(BaseFeaturePreprocessorLayer, self).__init__(*args, *kwargs)
-        self.feature_preprocessor_list = feature_preprocessor_list
-
-    @classmethod
-    def from_infered_pipeline(cls, dataset):
-        """Infer standard pipeline for structured data, i.e Normalization for numerical
-        features and StringLookup/IntegerLookup for categoric features
-
-        Args:
-            dataset (tf.data.Dataset): Features Data to apply encoder on.
-
-        Returns:
-            BaseFeaturePreprocessorLayer: Initilized BaseFeaturePreprocessorLayer object
-        """
-        if isinstance(dataset, tf.data.Dataset):
-            feature_preprocessor_list = BaseFeaturePreprocessorFromTensorflowDataset.from_infered_pipeline(dataset)
-            return cls(feature_preprocessor_list)
-
-    def adapt(self, dataset):
-        """Adapt preprocessing layers.
-
-        Args:
-            dataset ([pandas.DataFrame, tf.data.Dataset]): Training data.
-        """
-        if isinstance(dataset, tf.data.Dataset):
-            self.preprocessor_flow = BaseFeaturePreprocessorFromTensorflowDataset(
-                self.feature_preprocessor_list
-            )
-            self.preprocessor_flow.adapt(dataset)
-
-    def call(self, inputs):
-        """Apply adapted layers on new data
-
-        Args:
-            inputs (dict): Dictionary of Tensors.
-
-        Returns:
-            dict: Dict of Tensors
-        """
-        return self.preprocessor_flow(inputs)
-
-
-class BaseFeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeaturePreprocessor):
+class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeaturePreprocessor):
     """Feature Layer for Tensorflow Dataset type
     """
 
     def __init__(self, feature_preprocessor_list=[], *args, **kwargs):
-        super(BaseFeaturePreprocessorFromTensorflowDataset, self).__init__(*args, *kwargs)
+        super(FeaturePreprocessorFromTensorflowDataset, self).__init__(*args, *kwargs)
         self.feature_preprocessor_list = feature_preprocessor_list
         self.feature_preprocessor_list = self.map_preprocessor(self.feature_preprocessor_list)
-        self.adapted_preprocessors = {}
+        self.adapted_preprocessors = dict()
 
     def adapt(self, dataset):
         """Adapt layers from tf.data.Dataset source type.
@@ -93,7 +43,7 @@ class BaseFeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFe
         Returns:
             dict: Dict of Tensors
         """
-        forward_pass = {}
+        forward_pass = dict()
         for name, _, features in self.feature_preprocessor_list:
             forward_pass[name] = [
                 self.adapted_preprocessors[feature](inputs[feature])
@@ -139,14 +89,14 @@ class BaseFeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFe
         return feature_preprocessor_list
 
 
-class BaseFeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeaturePreprocessor):
+class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeaturePreprocessor):
     """Feature Layer flow for pandas DataFrame source type
     """
 
     def __init__(self, feature_preprocessor_list=[], *args, **kwargs):
-        super(BaseFeaturePreprocessorFromPandasDataFrame, self).__init__(*args, *kwargs)
+        super(FeaturePreprocessorFromPandasDataFrame, self).__init__(*args, *kwargs)
         self.feature_preprocessor_list = self.map_preprocessor(feature_preprocessor_list)
-        self.adapted_preprocessors = {}
+        self.adapted_preprocessors = dict()
 
 
 def extract_feature_column(dataset, name):
