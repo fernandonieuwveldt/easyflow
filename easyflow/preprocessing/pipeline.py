@@ -1,16 +1,15 @@
 """Main feature preprocessing interfaces"""
 
 import tensorflow as tf
-from easyflow.preprocessing.feature_preprocessor_layer import (
-    BaseFeaturePreprocessorLayer,
+from easyflow.preprocessing.factory import (
+    FeaturePreprocessorFactory,
 )
 
 
-class FeaturePreprocessor(BaseFeaturePreprocessorLayer):
+class FeaturePreprocessor(FeaturePreprocessorFactory):
     """
     Main interface for transforming features. Apply feature preprocessing list which can contain both
     Encoder and SequentialEncoder object types
-
     Args:
         feature_encoder_list : List of encoders of the form: ('name', encoder type, list of features)
     """
@@ -19,7 +18,7 @@ class FeaturePreprocessor(BaseFeaturePreprocessorLayer):
         super().__init__(*args, **kwargs)
 
 
-class FeaturePreprocessorUnion(BaseFeaturePreprocessorLayer):
+class FeaturePreprocessorUnion(FeaturePreprocessorFactory):
     """Apply column based preprocessing on the data and combine features with a concat layer.
 
     Args:
@@ -27,7 +26,7 @@ class FeaturePreprocessorUnion(BaseFeaturePreprocessorLayer):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(FeaturePreprocessorUnion, self).__init__(*args, **kwargs)
 
     def call(self, inputs):
         """Join features. If more flexibility and customization is needed use PreprocessorColumnTransformer.
