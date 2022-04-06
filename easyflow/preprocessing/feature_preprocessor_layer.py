@@ -97,7 +97,14 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
 
 
 class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeaturePreprocessor):
-    """Feature Layer flow for pandas DataFrame source type
+    """Feature Preprocessing Layer for pandas DataFrame type. The class takes in steps of preprocessing that
+    needs to be applied on the dataset. The adapt method records all stateful parameters for each of the steps
+    and features that will be adapted. These adapted layers will be stored as an attribute and applied in the
+    forward pass of the network.
+
+    Args:
+        feature_encoder_list : List of preprocessor of the form: ('name', preprocessor type, list of features)
+
     """
 
     def __init__(self, feature_preprocessor_list=[], *args, **kwargs):
