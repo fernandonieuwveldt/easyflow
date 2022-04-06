@@ -47,3 +47,13 @@ class FeaturePreprocessorUnion(FeaturePreprocessorFactory):
         if len(preprocessed_input) > 1:
             return tf.keras.layers.concatenate(preprocessed_input)
         return preprocessed_input.pop()
+
+
+class FeatureUnion(Exception):
+    def __init__(self, **kwargs):
+        raise Exception('Removed in version >= 1.3.0, please use FeaturePreprocessorUnion')
+
+
+class Pipeline(Exception):
+        def __init__(self, **kwargs):
+            raise Exception('Removed in version >= 1.3.0, please use FeaturePreprocessor')
