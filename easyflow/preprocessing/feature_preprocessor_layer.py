@@ -2,7 +2,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
-from easyflow.preprocessing.custom import SequentialPreprocessingChainer
+from easyflow.preprocessing.custom import StringToIntegerLookup
 from easyflow.preprocessing.base import BaseFeaturePreprocessor
 
 
@@ -90,9 +90,7 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
                 "categorical_features", layers.IntegerLookup(output_mode="binary"), categoric_features,
             ),
             (
-                "string_categorical_features",
-                SequentialPreprocessingChainer([layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]),
-                string_categoric_features,
+                "string_categorical_features", StringToIntegerLookup(), string_categoric_features,
             ),
         ]
         return feature_preprocessor_list
