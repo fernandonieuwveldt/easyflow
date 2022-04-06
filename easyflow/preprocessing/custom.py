@@ -45,10 +45,13 @@ class FeatureInputLayer:
 
     @classmethod
     def infer_from_data(cls, dataset):
-        """Infer InputLayer from Dtype
+        """Create model inputs from the dataset's element spec.
 
         Args:
             input (tf.data.Dataset): Training dataset with features
+
+        Returns:
+            (dict): Keras Input for each feature
         """
 
         def get_data_spec(ds):
@@ -80,8 +83,8 @@ class NumericPreprocessingLayer(PreprocessingLayer):
 
 
 class PreprocessingChainer(tf.keras.layers.Layer):
-    """Preprocessing layer that chains one or more layer in sequential order by
-    subclassinig Layer class
+    """Preprocessing layer that chains one or more layer in a sequential order by
+    subclassinig Layer class.
 
     Args:
         layers_to_adapt (list): List of layer that needs to be adapted
@@ -96,7 +99,7 @@ class PreprocessingChainer(tf.keras.layers.Layer):
         self.pipeline = None
 
     def adapt(self, data):
-        """Adapt layers to adapt sequentially
+        """Adapt layers to adapt sequentially and store adapted layers in executed order in adapted layer list.
 
         Args:
             data (tf.data.Dataset): Mapped tf.data.Dataset containing only the single feature
@@ -138,7 +141,7 @@ class PreprocessingChainer(tf.keras.layers.Layer):
 
 
 class SequentialPreprocessingChainer(tf.keras.models.Sequential):
-    """Preprocessing model that chains one or more layers in sequential order by subclassing
+    """Preprocessing model that chains one or more layers in a sequential order by subclassing
     Sequential model class.
     """
 
@@ -149,7 +152,8 @@ class SequentialPreprocessingChainer(tf.keras.models.Sequential):
         self.layers_to_adapt = layers_to_adapt
 
     def adapt(self, data):
-        """Adapt layers to adapt sequentially
+        """Adapt layers to adapt sequentially and add layers with the tf.keras.models.Sequential add 
+        method.
 
         Args:
             data (tf.data.Dataset): Mapped tf.data.Dataset containing only the single feature
