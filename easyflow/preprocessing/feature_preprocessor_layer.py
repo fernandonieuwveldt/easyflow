@@ -41,7 +41,7 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
                 cloned_preprocessor.adapt(feature_ds)
                 self.adapted_preprocessors[feature] = cloned_preprocessor
 
-    # what if inputs is not a dict of symbolic tensors?
+    # what if inputs is not of type dict?
     @tf.function
     def call(self, inputs):
         """Apply adapted layers on new data.
