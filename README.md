@@ -1,4 +1,4 @@
-# Easy Tensorflow:
+# EasyFlow:
 
 Usually when we build ML training pipeline we might utilize `Pandas` to read and manipulate data; SKLearn to preprocess our features by using for example one-hot-encoding or Normalization. This can than be part of an `SKLearn Pipeline`. But what can you do if you need to implement a similar model training pipeline in `Keras`?
 
