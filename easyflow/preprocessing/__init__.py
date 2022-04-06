@@ -8,7 +8,9 @@ from easyflow.preprocessing.pipeline import (
 from easyflow.preprocessing.custom import (
     FeatureInputLayer,
     NumericPreprocessingLayer,
+    PreprocessingChainer, 
     SequentialPreprocessingChainer,
+    StringToIntegerLookup
 )
 # This will be removed from later versions. Raises exception when initialised
 from easyflow.preprocessing.pipeline import (
@@ -22,7 +24,9 @@ __all__ = [
     "FeaturePreprocessor",
     "FeaturePreprocessorUnion",
     "NumericPreprocessingLayer",
+    "PreprocessingChainer",
     "SequentialPreprocessingChainer",
+    "StringToIntegerLookup",
     # Below will be removed
     "Pipeline",
     "FeatureUnion"
