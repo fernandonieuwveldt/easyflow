@@ -13,11 +13,26 @@ One missing component in Keras is a `Pipeline` or `ColumnTransformer` type imple
 layers into a single layer.
 
 ## Usage:
+
+Chaining preprocessing layers
+
+```python
+def StringToIntegerLookup():
+    return SequentialPreprocessingChainer(
+        [StringLookup(), IntegerLookup(output_mode='binary')]
+)
+
+```
+The `SequentialPreprocessingChainer` can be use to chain multiple layers especially usefull when these steps are dependent on each other.
+
+The `FeaturePreprocessorUnion` layer is one of the two interfaces. Note that we can use our layer above as one of the steps.
+
 ```python
 # FeaturePreprocessorUnion is a Keras layer.
 preprocessor = FeaturePreprocessorUnion([
     ('normalization', Normalization(), FEATURES_TO_NORMALIZE),
-    ('one_hot_encoding', IntegerLookup(output_mode='binary'), FEATURES_TO_ENCODE)
+    ('one_hot_encoding', IntegerLookup(output_mode='binary'), FEATURES_TO_ENCODE),
+    ('string_encoder', StringToIntegerLookup(), STR_FEATURES_TO_ENCODE)
 ])
 
 # to update the states for preprocess layers:
@@ -48,7 +63,7 @@ from easyflow.data import TensorflowDataMapper
 from easyflow.preprocessing import FeaturePreprocessorUnion
 from easyflow.preprocessing import (
     FeatureInputLayer,
-    SequentialPreprocessingChainer,
+    StringToIntegerLookup,
 )
 
 ```
@@ -99,10 +114,7 @@ dtype_mapper = {
 feature_preprocessor_list = [
     ('numeric_encoder', Normalization(), NUMERICAL_FEATURES),
     ('categorical_encoder', IntegerLookup(output_mode='binary'), CATEGORICAL_FEATURES),
-    # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
-    ('string_encoder', 
-     SequentialPreprocessingChainer([StringLookup(), IntegerLookup(output_mode='binary')]),
-     STRING_CATEGORICAL_FEATURES)
+    ('string_encoder', StringToIntegerLookup(), STRING_CATEGORICAL_FEATURES)
 ]
 
 preprocessor = FeaturePreprocessorUnion(feature_preprocessor_list)
