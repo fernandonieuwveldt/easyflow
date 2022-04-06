@@ -54,7 +54,7 @@ class FeaturePreprocessorFactory(tf.keras.models.Model):
             )
 
         if not self.preprocessor_flow:
-            raise Exception("dataset should be of type pandas DataFrame or Tensorflow tf.data.Dataset")
+            raise Exception("Datatype not supported: dataset should be of type pandas DataFrame or Tensorflow tf.data.Dataset")
 
         self.preprocessor_flow.adapt(dataset)
 

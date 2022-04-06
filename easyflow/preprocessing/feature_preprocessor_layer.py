@@ -159,4 +159,4 @@ def extract_feature_column_pandas(dataset, name):
     Returns:
         array: numpy array of supplied feature.
     """
-    return dataset[name].values
+    return dataset[[name]].values

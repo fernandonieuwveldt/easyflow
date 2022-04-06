@@ -4,23 +4,69 @@ from tensorflow.python.keras.engine.base_preprocessing_layer import Preprocessin
 import tensorflow as tf
 
 
-def FeatureInputLayer(dtype_mapper=dict()):
-    """Create model inputs
+class FeatureInputLayer:
+    """Create model inputs for each Feature in the dataset of features that will be used for training. There are two
+    options to create the input layer. By default we will be taking in a dict mapper with feature name and dtype as input to
+    construct inputs to the network. Second option is to infer the dtype from Dataset's element spec if source data comes from
+    tf.data.Dataset type.
+
     Args:
         data_type_mapper (dict): Dictionary with feature as key and dtype as value
                                 For example {'age': tf.float32, ...}
     Returns:
         (dict): Keras Input for each feature
     """
-    return {
-        feature: tf.keras.Input(shape=(1,), name=feature, dtype=dtype)
-        for feature, dtype in dtype_mapper.items()
-    }
+
+    def __new__(cls, dtype_mapper):
+        """Create Input Layer with type mapper by default and return dict of Input objects.
+
+        Args:
+            dtype_mapper (dict): Key and Value pairs for feature name as key and data type as value
+
+        Returns:
+            dict: Dict with feaure name as key and  Input object value
+        """
+        return cls.from_dict_mapper(dtype_mapper)
+
+    @classmethod
+    def from_dict_mapper(cls, dtype_mapper):
+        """Create model inputs
+
+        Args:
+            data_type_mapper (dict): Dictionary with feature as key and dtype as value
+                                    For example {'age': tf.float32, ...}
+        Returns:
+            (dict): Keras Input for each feature
+        """
+        return {
+            feature: tf.keras.Input(shape=(1,), name=feature, dtype=dtype)
+            for feature, dtype in dtype_mapper.items()
+        }
+
+    @classmethod
+    def infer_from_data(cls, dataset):
+        """Infer InputLayer from Dtype
+
+        Args:
+            input (tf.data.Dataset): Training dataset with features
+        """
+
+        def get_data_spec(ds):
+            """helper function to get extract element spec based on Dataset spec"""
+            if len(ds.element_spec) == 2:
+                return ds.element_spec[0]
+            return ds.element_spec
+
+        spec = get_data_spec(dataset)
+
+        return {
+            feature: tf.keras.Input(shape=(1,), name=feature, dtype=tspec.dtype)
+            for feature, tspec in spec.items()
+        }
 
 
 class NumericPreprocessingLayer(PreprocessingLayer):
-    """Helper class to apply no preprocessing and use feature as is
-    """
+    """Helper class to apply no preprocessing and use feature as is"""
 
     def call(self, inputs):
         return tf.keras.layers.Reshape((1,))(inputs)
@@ -34,7 +80,7 @@ class NumericPreprocessingLayer(PreprocessingLayer):
 
 
 class PreprocessingChainer(tf.keras.layers.Layer):
-    """Preprocessing layer that chains one or more layer in sequential order by 
+    """Preprocessing layer that chains one or more layer in sequential order by
     subclassinig Layer class
 
     Args:
@@ -92,7 +138,7 @@ class PreprocessingChainer(tf.keras.layers.Layer):
 
 
 class SequentialPreprocessingChainer(tf.keras.models.Sequential):
-    """Preprocessing model that chains one or more layers in sequential order by subclassing 
+    """Preprocessing model that chains one or more layers in sequential order by subclassing
     Sequential model class.
     """
 
@@ -125,7 +171,5 @@ class SequentialPreprocessingChainer(tf.keras.models.Sequential):
             dict: Updated config
         """
         config = super().get_config()
-        config.update(
-            {"layers_to_adapt": self.layers_to_adapt}
-        )
+        config.update({"layers_to_adapt": self.layers_to_adapt})
         return config
