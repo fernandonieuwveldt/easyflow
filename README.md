@@ -16,12 +16,12 @@ layers into a single layer.
 ```python
 # FeaturePreprocessorUnion is a Keras layer.
 preprocessor = FeaturePreprocessorUnion([
-    ('normalization_step', layers.Normalization(), FEATURES_TO_NORMALIZE),
-    ('one_hot_encoding_step', layers.IntegerLookup(output_mode='binary'), FEATURES_TO_ONE_HOT_ENCODE)
+    ('normalization', Normalization(), FEATURES_TO_NORMALIZE),
+    ('one_hot_encoding', IntegerLookup(output_mode='binary'), FEATURES_TO_ENCODE)
 ])
 
 # to update the states for preprocess layers:
-preprocessor.adapt(data) # adapt can be thought of as .fit
+preprocessor.adapt(data)
 ```
 
 `Easyflow` also supports both `Pandas DataFrame's` and `tf.data.Dataset` types as input to the Feature Preprocessing pipelines.
