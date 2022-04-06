@@ -1,3 +1,12 @@
+## VERSION 1.3.1
+* Added StringToIntegerLookup to custom layer. This layer is a common usecase
+* Refactored BaseFeaturePreprocessorLayer into a factory
+* New class added for Tensorflow Datasets
+* Support for Pandas in the EasyFlow pipeline
+* Updated README and removed feature_columns example
+* FeatureInputLayer is now a class and added init from dataset
+* Bumped TF version from 2.7.0 to 2.7.1
+
 ## VERSION 1.3.0
 * Refactor by implementing best practices from Keras and Tensorflow
 * Layer's subclass layer class and implemented new custom layers
