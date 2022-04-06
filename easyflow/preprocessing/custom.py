@@ -2,6 +2,7 @@
 
 from tensorflow.python.keras.engine.base_preprocessing_layer import PreprocessingLayer
 import tensorflow as tf
+from tensorflow.keras import layers
 
 
 class FeatureInputLayer:
@@ -177,3 +178,15 @@ class SequentialPreprocessingChainer(tf.keras.models.Sequential):
         config = super().get_config()
         config.update({"layers_to_adapt": self.layers_to_adapt})
         return config
+
+
+def StringToIntegerLookup(**kwargs):
+    """Implements a common pipeline when categorical features are of type string.
+    Steps involve to first apply StringLookup followed by IntegerLookup.
+
+    Args:
+        kwargs: All arguments are related to IntegerLookup
+    """
+    return SequentialPreprocessingChainer(
+            [layers.StringLookup(), layers.IntegerLookup(output_mode='binary', **kwargs)]   
+    )

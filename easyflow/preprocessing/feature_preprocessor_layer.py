@@ -2,7 +2,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
-from easyflow.preprocessing.custom import SequentialPreprocessingChainer
+from easyflow.preprocessing.custom import StringToIntegerLookup
 from easyflow.preprocessing.base import BaseFeaturePreprocessor
 
 
@@ -90,16 +90,21 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
                 "categorical_features", layers.IntegerLookup(output_mode="binary"), categoric_features,
             ),
             (
-                "string_categorical_features",
-                SequentialPreprocessingChainer([layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]),
-                string_categoric_features,
+                "string_categorical_features", StringToIntegerLookup(), string_categoric_features,
             ),
         ]
         return feature_preprocessor_list
 
 
 class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeaturePreprocessor):
-    """Feature Layer flow for pandas DataFrame source type
+    """Feature Preprocessing Layer for pandas DataFrame type. The class takes in steps of preprocessing that
+    needs to be applied on the dataset. The adapt method records all stateful parameters for each of the steps
+    and features that will be adapted. These adapted layers will be stored as an attribute and applied in the
+    forward pass of the network.
+
+    Args:
+        feature_encoder_list : List of preprocessor of the form: ('name', preprocessor type, list of features)
+
     """
 
     def __init__(self, feature_preprocessor_list=[], *args, **kwargs):
