@@ -20,8 +20,7 @@ Chaining preprocessing layers
 def StringToIntegerLookup():
     return SequentialPreprocessingChainer(
         [StringLookup(), IntegerLookup(output_mode='binary')]
-)
-
+    )
 ```
 The `SequentialPreprocessingChainer` can be use to chain multiple layers especially usefull when these steps are dependent on each other.
 
