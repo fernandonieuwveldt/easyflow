@@ -7,7 +7,14 @@ from easyflow.preprocessing.base import BaseFeaturePreprocessor
 
 
 class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeaturePreprocessor):
-    """Feature Layer for Tensorflow Dataset type
+    """Feature Preprocessing Layer for Tensorflow Dataset type. The class takes in steps of preprocessing that
+    needs to be applied on the dataset. The adapt method records all stateful parameters for each of the steps
+    and features that will be adapted. These adapted layers will be stored as an attribute and applied in the
+    forward pass of the network.
+
+    Args:
+        feature_encoder_list : List of preprocessor of the form: ('name', preprocessor type, list of features)
+
     """
 
     def __init__(self, feature_preprocessor_list=[], *args, **kwargs):
@@ -17,7 +24,8 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
         self.adapted_preprocessors = dict()
 
     def adapt(self, dataset):
-        """Adapt layers from tf.data.Dataset source type.
+        """Loop through the feature preprocessor list and dapt features with the corresponding preprocessing
+        layer. The adapted preprocessing layers can be accessed from the adapted_preprocessors attribute.
 
         Args:
             dataset (tf.data.Dataset): Training data.
@@ -33,9 +41,10 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
                 cloned_preprocessor.adapt(feature_ds)
                 self.adapted_preprocessors[feature] = cloned_preprocessor
 
+    # what if inputs is not a dict of symbolic tensors?
     @tf.function
     def call(self, inputs):
-        """Apply adapted layers on new data
+        """Apply adapted layers on new data.
 
         Args:
             inputs (dict): Dictionary of Tensors.

@@ -12,7 +12,7 @@ class FeaturePreprocessorFactory(tf.keras.models.Model):
     """Apply column based transformation on the data using tf.keras  preprocessing layers.
 
     Args:
-        feature_encoder_list : List of encoders of the form: ('name', encoder type, list of features)
+        feature_encoder_list : List of preprocessor of the form: ('name', preprocessor type, list of features)
     """
 
     def __init__(self, feature_preprocessor_list=[], *args, **kwargs):
