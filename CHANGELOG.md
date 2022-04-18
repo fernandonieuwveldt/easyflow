@@ -1,3 +1,8 @@
+## VERSION 1.4.0
+* Added MultiOutputTransformer that takes in one feature and applying mulitple transformations.
+* Added an example notebook showcasing MultiOutputTransformer
+* Changed description of project.
+
 ## VERSION 1.3.1
 * Added StringToIntegerLookup to custom layer. This layer is a common usecase
 * Refactored BaseFeaturePreprocessorLayer into a factory
