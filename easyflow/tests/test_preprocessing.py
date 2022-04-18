@@ -9,10 +9,10 @@ from tensorflow.keras import layers
 
 # local imports
 from easyflow.data import TensorflowDataMapper
-from easyflow.preprocessing import FeaturePreprocessorUnion
+from easyflow.preprocessing import FeatureUnion
 from easyflow.preprocessing import (
     FeatureInputLayer,
-    SequentialPreprocessingChainer,
+    PreprocessorChain,
 )
 
 
@@ -64,7 +64,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
             # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
             (
                 "string_encoder",
-                SequentialPreprocessingChainer(
+                PreprocessorChain(
                     [layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]
                 ),
                 self.string_categorical_features,
@@ -94,7 +94,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
             # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
             (
                 "string_encoder",
-                SequentialPreprocessingChainer(
+                PreprocessorChain(
                     [layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]
                 ),
                 self.string_categorical_features,
@@ -114,13 +114,13 @@ class TestPreprocessingPipelines(unittest.TestCase):
         steps_list = [
             (
                 "string_encoder",
-                SequentialPreprocessingChainer(
+                PreprocessorChain(
                     [layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]
                 ),
                 self.string_categorical_features,
             )
         ]
-        preprocessor = FeaturePreprocessorUnion(steps_list)
+        preprocessor = FeatureUnion(steps_list)
         preprocessor.adapt(self.dataset)
         preprocessing_layer = preprocessor(self.all_feature_inputs)
         assert preprocessing_layer.shape[-1] == 6
@@ -131,7 +131,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
         steps_list = [
             (
                 "string_encoder",
-                SequentialPreprocessingChainer(
+                PreprocessorChain(
                     [
                         layers.StringLookup(max_tokens=4),
                         layers.IntegerLookup(output_mode="binary"),
@@ -140,14 +140,14 @@ class TestPreprocessingPipelines(unittest.TestCase):
                 self.string_categorical_features,
             )
         ]
-        preprocessor = FeaturePreprocessorUnion(steps_list)
+        preprocessor = FeatureUnion(steps_list)
         preprocessor.adapt(self.dataset)
         preprocessing_layer = preprocessor(self.all_feature_inputs)
         assert preprocessing_layer.shape[-1] == 5
 
     def test_infered_pipeline(self):
         """test infered pipeline"""
-        preprocessor = FeaturePreprocessorUnion.from_infered_pipeline(self.dataset)
+        preprocessor = FeatureUnion.from_infered_pipeline(self.dataset)
         preprocessor.adapt(self.dataset)
         preprocessing_layer = preprocessor(self.all_feature_inputs)
         # setup simple network
@@ -176,7 +176,7 @@ def train_model_util(dataset, all_feature_inputs, feature_preprocessor_list):
         dataset (tf.data.Dataset): Features Data to apply encoder on.
         feature_encoding_list (list): [List of encoders of the form: ('name', encoder type, list of features)
     """
-    preprocessor = FeaturePreprocessorUnion(feature_preprocessor_list)
+    preprocessor = FeatureUnion(feature_preprocessor_list)
     preprocessor.adapt(dataset)
     preprocessing_layer = preprocessor(all_feature_inputs)
 

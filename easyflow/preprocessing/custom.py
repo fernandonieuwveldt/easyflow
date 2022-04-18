@@ -83,8 +83,8 @@ class NumericPreprocessingLayer(PreprocessingLayer):
         return dict()
 
 
-class PreprocessingChainer(tf.keras.layers.Layer):
-    """Preprocessing layer that chains one or more layer in a sequential order by
+class Pipeline(tf.keras.layers.Layer):
+    """Preprocessing layer that chains one or more layers in a sequential order by
     subclassinig Layer class.
 
     Args:
@@ -92,7 +92,7 @@ class PreprocessingChainer(tf.keras.layers.Layer):
     """
 
     def __init__(self, layers_to_adapt, **kwargs):
-        super(PreprocessingChainer, self).__init__(**kwargs)
+        super(Pipeline, self).__init__(**kwargs)
         if not isinstance(layers_to_adapt, (list, tuple)):
             layers_to_adapt = [layers_to_adapt]
         self.layers_to_adapt = layers_to_adapt
@@ -106,7 +106,8 @@ class PreprocessingChainer(tf.keras.layers.Layer):
             data (tf.data.Dataset): Mapped tf.data.Dataset containing only the single feature
         """
         for layer in self.layers_to_adapt:
-            layer.adapt(data)
+            if hasattr(layer, 'adapt'):
+                layer.adapt(data)
             self.adapted_layers.append(layer)
             if len(self.layers_to_adapt) >= 2:
                 data = (
@@ -141,13 +142,13 @@ class PreprocessingChainer(tf.keras.layers.Layer):
         return config
 
 
-class SequentialPreprocessingChainer(tf.keras.models.Sequential):
+class PreprocessorChain(tf.keras.models.Sequential):
     """Preprocessing model that chains one or more layers in a sequential order by subclassing
-    Sequential model class.
+    Sequential model class. The functionality is the same as Pipeline.
     """
 
     def __init__(self, layers_to_adapt=[], **kwargs):
-        super(SequentialPreprocessingChainer, self).__init__(layers=[], **kwargs)
+        super(PreprocessorChain, self).__init__(layers=[], **kwargs)
         if not isinstance(layers_to_adapt, (list, tuple)):
             layers_to_adapt = [layers_to_adapt]
         self.layers_to_adapt = layers_to_adapt
@@ -159,9 +160,12 @@ class SequentialPreprocessingChainer(tf.keras.models.Sequential):
         Args:
             data (tf.data.Dataset): Mapped tf.data.Dataset containing only the single feature
         """
-        for counter, layer in enumerate(self.layers_to_adapt, start=0):
-            layer.adapt(data)
+        for counter, layer in enumerate(self.layers_to_adapt):
+            if hasattr(layer, 'adapt'):
+                layer.adapt(data)
+
             super().add(layer)
+
             if len(self.layers_to_adapt) > counter:
                 data = (
                     data.map(layer)
@@ -180,6 +184,56 @@ class SequentialPreprocessingChainer(tf.keras.models.Sequential):
         return config
 
 
+class MultiOutputTransformer(tf.keras.layers.Layer):
+    """Applies different feature transformations or preprocessing on the same feature and concatenates
+    the transformations into a single layer containing output of N transformations.
+    """
+    # we should be able to use this class the same way we do FeaturePreprocessor class, i.e standalone
+    def __init__(self, steps=[], **kwargs):
+        super(MultiOutputTransformer, self).__init__(**kwargs)
+        if not isinstance(steps, (list, tuple)):
+            steps = [steps]
+        self.steps = steps
+        self.processed_layers = []
+
+    def adapt(self, data):
+        """Apply different or independent preprocessing steps on the same data. The results will be concatenated
+        into a single layer.
+
+        Args:
+            data (tf.data.Dataset): Mapped tf.data.Dataset containing only the single feature
+        """
+        for layer in self.steps:
+            if hasattr(layer, 'adapt'):
+                layer.adapt(data)
+            self.processed_layers.append(layer)
+
+    def call(self, inputs):
+        """Apply sequential model containing adapted layers.
+
+        Args:
+            inputs (tf.data.Dataset): Feature to be adapted as a Mapped Dataset
+
+        Returns:
+            tf.Tensor: returns output after applying adapted layers.
+        """
+        return tf.keras.layers.concatenate([
+            processed_layer(inputs) for processed_layer in self.processed_layers
+        ])
+
+    def get_config(self):
+        """Update config with layers_to_adapt attr
+
+        Returns:
+            dict: Updated config
+        """
+        config = super().get_config()
+        config.update(
+            {"steps": self.steps, "processed_layers": self.processed_layers}
+        )
+        return config
+
+
 def StringToIntegerLookup(**kwargs):
     """Implements a common pipeline when categorical features are of type string.
     Steps involve to first apply StringLookup followed by IntegerLookup.
@@ -187,6 +241,6 @@ def StringToIntegerLookup(**kwargs):
     Args:
         kwargs: All arguments are related to IntegerLookup
     """
-    return SequentialPreprocessingChainer(
+    return PreprocessorChain(
             [layers.StringLookup(), layers.IntegerLookup(output_mode='binary', **kwargs)]   
     )
