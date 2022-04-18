@@ -3,31 +3,25 @@
 
 from easyflow.preprocessing.pipeline import (
     FeaturePreprocessor,
-    FeaturePreprocessorUnion,
+    FeatureUnion,
 )
 from easyflow.preprocessing.custom import (
     FeatureInputLayer,
     NumericPreprocessingLayer,
-    PreprocessingChainer, 
-    SequentialPreprocessingChainer,
+    Pipeline, 
+    PreprocessorChain,
+    MultiOutputTransformer,
     StringToIntegerLookup
-)
-# This will be removed from later versions. Raises exception when initialised
-from easyflow.preprocessing.pipeline import (
-    Pipeline,
-    FeatureUnion,
 )
 
 
 __all__ = [
     "FeatureInputLayer",
     "FeaturePreprocessor",
-    "FeaturePreprocessorUnion",
+    "FeatureUnion",
     "NumericPreprocessingLayer",
-    "PreprocessingChainer",
-    "SequentialPreprocessingChainer",
-    "StringToIntegerLookup",
-    # Below will be removed
     "Pipeline",
-    "FeatureUnion"
+    "PreprocessorChain",
+    "MultiOutputTransformer",
+    "StringToIntegerLookup",
 ]
