@@ -9,7 +9,7 @@ Generally we tend to use SKLearn Pipeline for feature engineering and preprocess
 One missing component in Keras is a `Pipeline` or `ColumnTransformer` type implementation for Keras preprocessing layers. The EasyFlow package implements these feature Pipelines with an easy interface as Feature Preprocessing layers. Main interfaces are:
 
 * `FeaturePreprocessor`: This layer applies feature preprocessing steps and returns a separate layer for each       step supplied. This gives more flexibility to the user and if a more advance network architecture is needed. For example something like a Wide and Deep network.
-* `FeaturePreprocessorUnion`: This layer is similar to `FeaturePreprocessor` with an extra that concatenates all
+* `FeatureUnion`: This layer is similar to `FeaturePreprocessor` with an extra step that concatenates all
 layers into a single layer.
 
 ## Usage:
@@ -18,17 +18,17 @@ Chaining preprocessing layers
 
 ```python
 def StringToIntegerLookup():
-    return SequentialPreprocessingChainer(
+    return PreprocessorChain(
         [StringLookup(), IntegerLookup(output_mode='binary')]
     )
 ```
-The `SequentialPreprocessingChainer` can be use to chain multiple layers especially usefull when these steps are dependent on each other.
+The `PreprocessorChain` can be use to chain multiple layers especially usefull when these steps are dependent on each other.
 
-The `FeaturePreprocessorUnion` layer is one of the two interfaces. Note that we can use our layer above as one of the steps.
+The `FeatureUnion` layer is one of the two interfaces. Note that we can use our layer above as one of the steps.
 
 ```python
-# FeaturePreprocessorUnion is a Keras layer.
-preprocessor = FeaturePreprocessorUnion([
+# FeatureUnion is a Keras layer.
+preprocessor = FeatureUnion([
     ('normalization', Normalization(), FEATURES_TO_NORMALIZE),
     ('one_hot_encoding', IntegerLookup(output_mode='binary'), FEATURES_TO_ENCODE),
     ('string_encoder', StringToIntegerLookup(), STR_FEATURES_TO_ENCODE)
@@ -49,8 +49,8 @@ For more examples in future. Check out the python notebooks in the notebooks fol
 pip install easy-tensorflow
 ```
 
-# Example: Preprocessing using FeaturePreprocessorUnion
-The FeaturePreprocessorUnion interface is similar to SKLearn's ColumnTransformer. Full example also in notebooks folder.
+# Example: Preprocessing using FeatureUnion
+The FeatureUnion interface is similar to SKLearn's ColumnTransformer. Full example also in notebooks folder.
 
 ```python
 import pandas as pd
@@ -59,7 +59,7 @@ from tensorflow.keras.layers import Normalization, StringLookup, IntegerLookup
 
 # local imports
 from easyflow.data import TensorflowDataMapper
-from easyflow.preprocessing import FeaturePreprocessorUnion
+from easyflow.preprocessing import FeatureUnion
 from easyflow.preprocessing import (
     FeatureInputLayer,
     StringToIntegerLookup,
@@ -116,7 +116,7 @@ feature_preprocessor_list = [
     ('string_encoder', StringToIntegerLookup(), STRING_CATEGORICAL_FEATURES)
 ]
 
-preprocessor = FeaturePreprocessorUnion(feature_preprocessor_list)
+preprocessor = FeatureUnion(feature_preprocessor_list)
 preprocessor.adapt(train_data_set)
 
 feature_layer_inputs = FeatureInputLayer(dtype_mapper)

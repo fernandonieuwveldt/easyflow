@@ -18,7 +18,7 @@ class FeaturePreprocessor(FeaturePreprocessorFactory):
         super().__init__(*args, **kwargs)
 
 
-class FeaturePreprocessorUnion(FeaturePreprocessorFactory):
+class FeatureUnion(FeaturePreprocessorFactory):
     """Apply column based preprocessing on the data and combine features with a concat layer.
 
     Args:
@@ -26,7 +26,7 @@ class FeaturePreprocessorUnion(FeaturePreprocessorFactory):
     """
 
     def __init__(self, *args, **kwargs):
-        super(FeaturePreprocessorUnion, self).__init__(*args, **kwargs)
+        super(FeatureUnion, self).__init__(*args, **kwargs)
 
     def call(self, inputs):
         """Join features. If more flexibility and customization is needed use PreprocessorColumnTransformer.
@@ -37,7 +37,7 @@ class FeaturePreprocessorUnion(FeaturePreprocessorFactory):
         Returns:
             (list, tf.keras.layer): Keras inputs for each feature and concatenated layer
         """
-        preprocessed_input = super(FeaturePreprocessorUnion, self).call(inputs)
+        preprocessed_input = super(FeatureUnion, self).call(inputs)
         # flatten (or taking the union) of preprocessed inputs
         preprocessed_input = [
             low_level
@@ -47,13 +47,3 @@ class FeaturePreprocessorUnion(FeaturePreprocessorFactory):
         if len(preprocessed_input) > 1:
             return tf.keras.layers.concatenate(preprocessed_input)
         return preprocessed_input.pop()
-
-
-class FeatureUnion(Exception):
-    def __init__(self, **kwargs):
-        raise Exception('Removed in version >= 1.3.0, please use FeaturePreprocessorUnion')
-
-
-class Pipeline(Exception):
-        def __init__(self, **kwargs):
-            raise Exception('Removed in version >= 1.3.0, please use FeaturePreprocessor')

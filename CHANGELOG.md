@@ -1,16 +1,30 @@
+## VERSION 1.4.0
+* Added MultiOutputTransformer that takes in one feature and applying mulitple transformations.
+* Added an example notebook showcasing MultiOutputTransformer
+* Changed description of project.
+
+## VERSION 1.3.1
+* Added StringToIntegerLookup to custom layer. This layer is a common usecase
+* Refactored BaseFeaturePreprocessorLayer into a factory
+* New class added for Tensorflow Datasets
+* Support for Pandas in the EasyFlow pipeline
+* Updated README and removed feature_columns example
+* FeatureInputLayer is now a class and added init from dataset
+* Bumped TF version from 2.7.0 to 2.7.1
+
 ## VERSION 1.3.0
 * Refactor by implementing best practices from Keras and Tensorflow
 * Layer's subclass layer class and implemented new custom layers
     - FeatureInputLayer: Dict of Input layers
-    - PreprocessingChainer: Adapt's multiple preprocessing layers
+    - PreprocessorChain: Adapt's multiple preprocessing layers
                             (Subclasses Layer)
-    - SequentialPreprocessingChainer: Adapt's multiple preprocessing layers
+    - PreprocessorChain: Adapt's multiple preprocessing layers
                                       (Subclasses Sequential model)
 * Main interface is now subclassing Layer class:
     - BaseFeaturePreprocessorLayer: This class also implements adapt method
 * New interfaces:
     - FeaturePreprocessor: Outputs a layer for each step
-    - FeaturePreprocessorUnion: Concatenates steps into single layer
+    - FeatureUnion: Concatenates steps into single layer
 * Deprecated previous class Pipeline and FeatureUnion
 
 ## VERSION 1.2.0
