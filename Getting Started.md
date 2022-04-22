@@ -1,6 +1,6 @@
 layout: page
 title: "Getting started with EasyFlow"
-permalink: /getting_start/
+permalink: /easyflow/getting_started/
 
 # Getting started with EasyFlow:
 
