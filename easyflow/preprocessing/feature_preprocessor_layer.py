@@ -147,6 +147,42 @@ class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeatureP
             ]
         return forward_pass
 
+    @classmethod
+    def from_infered_pipeline(cls, dataset):
+        """Infer preprocessing spec from pd.DataFrame type
+
+        Args:
+            dataset (pd.DataFrame): Training data that contains features and/or target
+
+        Returns:
+            list: steps for preprocessing list
+        """
+        numeric_features = []
+        categoric_features = []
+        string_categoric_features = []
+
+        for feature, _type in dataset.dtypes.items():
+            if str(_type) == 'object':
+                string_categoric_features.append(feature)
+            elif str(_type) in ['int64', 'int32']:
+                categoric_features.append(feature)
+            else:
+                numeric_features.append(feature)
+
+        feature_preprocessor_list = [
+            # FIXME: We will most likely not have all these steps
+            (
+                "numerical_features", layers.Normalization(), numeric_features
+            ),
+            (
+                "categorical_features", layers.IntegerLookup(output_mode="binary"), categoric_features,
+            ),
+            (
+                "string_categorical_features", StringToIntegerLookup(), string_categoric_features,
+            ),
+        ]
+        return feature_preprocessor_list
+
 
 def extract_feature_column_tensorflow(dataset, name):
     """Extract feature from dataset
