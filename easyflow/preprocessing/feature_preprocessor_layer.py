@@ -23,7 +23,7 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
         self.feature_preprocessor_list = self.map_preprocessor(self.feature_preprocessor_list)
         self.adapted_preprocessors = dict()
 
-    def adapt(self, dataset):
+    def adapt(self, dataset, *args, **kwargs):
         """Loop through the feature preprocessor list and dapt features with the corresponding preprocessing
         layer. The adapted preprocessing layers can be accessed from the adapted_preprocessors attribute.
 
@@ -38,7 +38,7 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
                 cloned_preprocessor = preprocessor if k==0 else preprocessor.from_config(config)
                 feature_ds = extract_feature_column_tensorflow(dataset, feature)
                 # check if layer has adapt method
-                cloned_preprocessor.adapt(feature_ds)
+                cloned_preprocessor.adapt(feature_ds, *args, **kwargs)
                 self.adapted_preprocessors[feature] = cloned_preprocessor
 
     # what if inputs is not of type dict?
@@ -112,7 +112,7 @@ class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeatureP
         self.feature_preprocessor_list = self.map_preprocessor(feature_preprocessor_list)
         self.adapted_preprocessors = dict()
 
-    def adapt(self, dataset):
+    def adapt(self, dataset, *args, **kwargs):
         """Adapt layers from tf.data.Dataset source type.
 
         Args:
@@ -126,7 +126,7 @@ class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeatureP
                 cloned_preprocessor = preprocessor if k==0 else preprocessor.from_config(config)
                 feature_ds = extract_feature_column_pandas(dataset, feature)
                 # check if layer has adapt method
-                cloned_preprocessor.adapt(feature_ds)
+                cloned_preprocessor.adapt(feature_ds, *args, **kwargs)
                 self.adapted_preprocessors[feature] = cloned_preprocessor
 
     @tf.function
