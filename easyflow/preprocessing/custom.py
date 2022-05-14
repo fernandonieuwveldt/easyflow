@@ -99,7 +99,7 @@ class Pipeline(tf.keras.layers.Layer):
         self.adapted_layers = []
         self.pipeline = None
 
-    def adapt(self, data):
+    def adapt(self, data, *args, **kwargs):
         """Adapt layers to adapt sequentially and store adapted layers in executed order in adapted layer list.
 
         Args:
@@ -107,7 +107,7 @@ class Pipeline(tf.keras.layers.Layer):
         """
         for layer in self.layers_to_adapt:
             if hasattr(layer, 'adapt'):
-                layer.adapt(data)
+                layer.adapt(data, *args, **kwargs)
             self.adapted_layers.append(layer)
             if len(self.layers_to_adapt) >= 2:
                 data = (
@@ -153,7 +153,7 @@ class PreprocessorChain(tf.keras.models.Sequential):
             layers_to_adapt = [layers_to_adapt]
         self.layers_to_adapt = layers_to_adapt
 
-    def adapt(self, data):
+    def adapt(self, data, *args, **kwargs):
         """Adapt layers to adapt sequentially and add layers with the tf.keras.models.Sequential add 
         method.
 
@@ -162,7 +162,7 @@ class PreprocessorChain(tf.keras.models.Sequential):
         """
         for counter, layer in enumerate(self.layers_to_adapt):
             if hasattr(layer, 'adapt'):
-                layer.adapt(data)
+                layer.adapt(data, *args, **kwargs)
 
             super().add(layer)
 
@@ -196,7 +196,7 @@ class MultiOutputTransformer(tf.keras.layers.Layer):
         self.steps = steps
         self.processed_layers = []
 
-    def adapt(self, data):
+    def adapt(self, data, *args, **kwargs):
         """Apply different or independent preprocessing steps on the same data. The results will be concatenated
         into a single layer.
 
@@ -205,7 +205,7 @@ class MultiOutputTransformer(tf.keras.layers.Layer):
         """
         for layer in self.steps:
             if hasattr(layer, 'adapt'):
-                layer.adapt(data)
+                layer.adapt(data, *args, **kwargs)
             self.processed_layers.append(layer)
 
     def call(self, inputs):

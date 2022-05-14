@@ -21,10 +21,10 @@ class TestPreprocessingPipelines(unittest.TestCase):
     """
 
     def setUp(self):
-        dataframe = pd.read_csv("easyflow/tests/test_data/heart.csv")
-        labels = dataframe.pop("target")
+        self.dataframe = pd.read_csv("easyflow/tests/test_data/heart.csv")
+        labels = self.dataframe.pop("target")
         dataset_mapper = TensorflowDataMapper()
-        self.dataset = dataset_mapper.map(dataframe, labels).batch(32)
+        self.dataset = dataset_mapper.map(self.dataframe, labels).batch(32)
 
         self.numerical_features = [
             "age",
@@ -144,6 +144,24 @@ class TestPreprocessingPipelines(unittest.TestCase):
         preprocessor.adapt(self.dataset)
         preprocessing_layer = preprocessor(self.all_feature_inputs)
         assert preprocessing_layer.shape[-1] == 5
+
+    def test_adapt_with_args(self):
+        """Test pipeline with args passed to .adapt
+        """
+        steps_list = [
+                ("numeric_encoder", layers.Normalization(), self.numerical_features)
+        ]
+        # Apply on tf.data dataset
+        preprocessor = FeatureUnion(steps_list)
+        preprocessor.adapt(self.dataset, steps=1)
+        preprocessing_layer = preprocessor(self.all_feature_inputs)
+        assert preprocessing_layer.shape[-1] == 6
+        del preprocessor
+        # Apply on dataframe
+        preprocessor = FeatureUnion(steps_list)
+        preprocessor.adapt(self.dataframe, steps=1)
+        preprocessing_layer = preprocessor(self.all_feature_inputs)
+        assert preprocessing_layer.shape[-1] == 6
 
     def test_infered_pipeline(self):
         """test infered pipeline"""
