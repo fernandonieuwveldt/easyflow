@@ -58,14 +58,14 @@ class TestPreprocessingPipelines(unittest.TestCase):
             ("numeric_encoder", layers.Normalization(), self.numerical_features),
             (
                 "categorical_encoder",
-                layers.IntegerLookup(output_mode="binary"),
+                layers.IntegerLookup(output_mode="multi_hot"),
                 self.categorical_features,
             ),
             # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]
+                    [layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             ),
@@ -88,14 +88,14 @@ class TestPreprocessingPipelines(unittest.TestCase):
             ("numeric_encoder", None, self.numerical_features),
             (
                 "categorical_encoder",
-                layers.IntegerLookup(output_mode="binary"),
+                layers.IntegerLookup(output_mode="multi_hot"),
                 self.categorical_features,
             ),
             # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]
+                    [layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             ),
@@ -115,7 +115,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]
+                    [layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             )
@@ -134,7 +134,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
                 PreprocessorChain(
                     [
                         layers.StringLookup(max_tokens=4),
-                        layers.IntegerLookup(output_mode="binary"),
+                        layers.IntegerLookup(output_mode="multi_hot"),
                     ]
                 ),
                 self.string_categorical_features,
