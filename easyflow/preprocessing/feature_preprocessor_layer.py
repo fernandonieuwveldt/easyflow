@@ -87,7 +87,7 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
                 "numerical_features", layers.Normalization(), numeric_features
             ),
             (
-                "categorical_features", layers.IntegerLookup(output_mode="binary"), categoric_features,
+                "categorical_features", layers.IntegerLookup(output_mode="multi_hot"), categoric_features,
             ),
             (
                 "string_categorical_features", StringToIntegerLookup(), string_categoric_features,
@@ -175,7 +175,7 @@ class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeatureP
                 "numerical_features", layers.Normalization(), numeric_features
             ),
             (
-                "categorical_features", layers.IntegerLookup(output_mode="binary"), categoric_features,
+                "categorical_features", layers.IntegerLookup(output_mode="multi_hot"), categoric_features,
             ),
             (
                 "string_categorical_features", StringToIntegerLookup(), string_categoric_features,

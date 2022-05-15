@@ -19,7 +19,7 @@ Chaining preprocessing layers
 ```python
 def StringToIntegerLookup():
     return PreprocessorChain(
-        [StringLookup(), IntegerLookup(output_mode='binary')]
+        [StringLookup(), IntegerLookup(output_mode='multi_hot')]
     )
 ```
 The `PreprocessorChain` can be use to chain multiple layers especially usefull when these steps are dependent on each other.
@@ -30,7 +30,7 @@ The `FeatureUnion` layer is one of the two interfaces. Note that we can use our 
 # FeatureUnion is a Keras layer.
 preprocessor = FeatureUnion([
     ('normalization', Normalization(), FEATURES_TO_NORMALIZE),
-    ('one_hot_encoding', IntegerLookup(output_mode='binary'), FEATURES_TO_ENCODE),
+    ('one_hot_encoding', IntegerLookup(output_mode='multi_hot'), FEATURES_TO_ENCODE),
     ('string_encoder', StringToIntegerLookup(), STR_FEATURES_TO_ENCODE)
 ])
 
@@ -112,7 +112,7 @@ dtype_mapper = {
 ```python
 feature_preprocessor_list = [
     ('numeric_encoder', Normalization(), NUMERICAL_FEATURES),
-    ('categorical_encoder', IntegerLookup(output_mode='binary'), CATEGORICAL_FEATURES),
+    ('categorical_encoder', IntegerLookup(output_mode='multi_hot'), CATEGORICAL_FEATURES),
     ('string_encoder', StringToIntegerLookup(), STRING_CATEGORICAL_FEATURES)
 ]
 
