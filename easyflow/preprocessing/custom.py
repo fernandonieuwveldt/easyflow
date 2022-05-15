@@ -242,5 +242,5 @@ def StringToIntegerLookup(**kwargs):
         kwargs: All arguments are related to IntegerLookup
     """
     return PreprocessorChain(
-            [layers.StringLookup(), layers.IntegerLookup(output_mode='binary', **kwargs)]   
+            [layers.StringLookup(), layers.IntegerLookup(output_mode='multi_hot', **kwargs)]   
     )
