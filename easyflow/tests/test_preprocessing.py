@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 
 # local imports
 from easyflow.data import TensorflowDataMapper
-from easyflow.preprocessing import FeatureUnion
+from easyflow.preprocessing import FeaturePreprocessor, FeatureUnion
 from easyflow.preprocessing import (
     FeatureInputLayer,
     PreprocessorChain,
@@ -70,6 +70,15 @@ class TestPreprocessingPipelines(unittest.TestCase):
                 self.string_categorical_features,
             ),
         ]
+
+    def test_feature_preprocessor(self):
+        """Test FeaturePreprocessor class
+        """
+        preprocessor = FeaturePreprocessor(self.feature_preprocessor_list)
+        preprocessor.adapt(self.dataframe)
+        preprocessing_layer = preprocessor(self.all_feature_inputs)
+        assert list(preprocessing_layer.keys()) == ['numeric_encoder', 'categorical_encoder', 'string_encoder']
+        assert preprocessing_layer.numeric_encoder.shape[-1] == 6
 
     def test_preprocessing_pipeline(self):
         """Test Feature union and model fit
