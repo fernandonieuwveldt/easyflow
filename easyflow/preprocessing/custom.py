@@ -217,9 +217,7 @@ class MultiOutputTransformer(tf.keras.layers.Layer):
         Returns:
             tf.Tensor: returns output after applying adapted layers.
         """
-        return tf.keras.layers.concatenate([
-            processed_layer(inputs) for processed_layer in self.processed_layers
-        ])
+        return [processed_layer(inputs) for processed_layer in self.processed_layers]
 
     def get_config(self):
         """Update config with layers_to_adapt attr
