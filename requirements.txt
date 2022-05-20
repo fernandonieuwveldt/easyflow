@@ -1,2 +1,2 @@
 # packages
-tensorflow==2.7.1
+tensorflow-gpu==2.7.1
