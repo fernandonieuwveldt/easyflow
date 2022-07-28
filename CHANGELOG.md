@@ -1,3 +1,6 @@
+## VERSION 1.4.1
+* Added a new landing page (README) for the project
+
 ## VERSION 1.4.0
 * Added MultiOutputTransformer that takes in one feature and applying mulitple transformations.
 * Added an example notebook showcasing MultiOutputTransformer
