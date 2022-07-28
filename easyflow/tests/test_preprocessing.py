@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 
 # local imports
 from easyflow.data import TensorflowDataMapper
-from easyflow.preprocessing import FeatureUnion
+from easyflow.preprocessing import FeaturePreprocessor, FeatureUnion
 from easyflow.preprocessing import (
     FeatureInputLayer,
     PreprocessorChain,
@@ -21,10 +21,10 @@ class TestPreprocessingPipelines(unittest.TestCase):
     """
 
     def setUp(self):
-        dataframe = pd.read_csv("easyflow/tests/test_data/heart.csv")
-        labels = dataframe.pop("target")
+        self.dataframe = pd.read_csv("easyflow/tests/test_data/heart.csv")
+        labels = self.dataframe.pop("target")
         dataset_mapper = TensorflowDataMapper()
-        self.dataset = dataset_mapper.map(dataframe, labels).batch(32)
+        self.dataset = dataset_mapper.map(self.dataframe, labels).batch(32)
 
         self.numerical_features = [
             "age",
@@ -58,18 +58,27 @@ class TestPreprocessingPipelines(unittest.TestCase):
             ("numeric_encoder", layers.Normalization(), self.numerical_features),
             (
                 "categorical_encoder",
-                layers.IntegerLookup(output_mode="binary"),
+                layers.IntegerLookup(output_mode="multi_hot"),
                 self.categorical_features,
             ),
             # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]
+                    [layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             ),
         ]
+
+    def test_feature_preprocessor(self):
+        """Test FeaturePreprocessor class
+        """
+        preprocessor = FeaturePreprocessor(self.feature_preprocessor_list)
+        preprocessor.adapt(self.dataframe)
+        preprocessing_layer = preprocessor(self.all_feature_inputs)
+        assert list(preprocessing_layer.keys()) == ['numeric_encoder', 'categorical_encoder', 'string_encoder']
+        assert preprocessing_layer.numeric_encoder.shape[-1] == 6
 
     def test_preprocessing_pipeline(self):
         """Test Feature union and model fit
@@ -88,14 +97,14 @@ class TestPreprocessingPipelines(unittest.TestCase):
             ("numeric_encoder", None, self.numerical_features),
             (
                 "categorical_encoder",
-                layers.IntegerLookup(output_mode="binary"),
+                layers.IntegerLookup(output_mode="multi_hot"),
                 self.categorical_features,
             ),
             # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]
+                    [layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             ),
@@ -115,7 +124,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [layers.StringLookup(), layers.IntegerLookup(output_mode="binary")]
+                    [layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             )
@@ -134,7 +143,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
                 PreprocessorChain(
                     [
                         layers.StringLookup(max_tokens=4),
-                        layers.IntegerLookup(output_mode="binary"),
+                        layers.IntegerLookup(output_mode="multi_hot"),
                     ]
                 ),
                 self.string_categorical_features,
@@ -144,6 +153,24 @@ class TestPreprocessingPipelines(unittest.TestCase):
         preprocessor.adapt(self.dataset)
         preprocessing_layer = preprocessor(self.all_feature_inputs)
         assert preprocessing_layer.shape[-1] == 5
+
+    def test_adapt_with_args(self):
+        """Test pipeline with args passed to .adapt
+        """
+        steps_list = [
+                ("numeric_encoder", layers.Normalization(), self.numerical_features)
+        ]
+        # Apply on tf.data dataset
+        preprocessor = FeatureUnion(steps_list)
+        preprocessor.adapt(self.dataset, steps=1)
+        preprocessing_layer = preprocessor(self.all_feature_inputs)
+        assert preprocessing_layer.shape[-1] == 6
+        del preprocessor
+        # Apply on dataframe
+        preprocessor = FeatureUnion(steps_list)
+        preprocessor.adapt(self.dataframe, steps=1)
+        preprocessing_layer = preprocessor(self.all_feature_inputs)
+        assert preprocessing_layer.shape[-1] == 6
 
     def test_infered_pipeline(self):
         """test infered pipeline"""

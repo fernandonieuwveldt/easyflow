@@ -1,56 +1,44 @@
-# EasyFlow:
+# EasyFlow: Keras Feature Preprocessing Pipelines
 
-Usually when we build ML training pipeline we might utilize `Pandas` to read and manipulate data; SKLearn to preprocess our features by using for example one-hot-encoding or Normalization. This can than be part of an `SKLearn Pipeline`. But what can you do if you need to implement a similar model training pipeline in `Keras`?
+![Keras logo](https://s3.amazonaws.com/keras.io/img/keras-logo-2018-large-1200.png)
 
-`EasyFlow` is a Keras and Tensorflow native implementation that mimics the functionality of SKLearn's Pipeline api, but implemented natively in Tensorflow and Keras. The `EasyFlow` package implements an interface that contains easy feature preprocessing pipelines to build a full training and inference pipeline by only utilizing the Tensorflow and Keras framework. A usecase could be if one needs to migrate an existing SKLearn training and inference pipeline to Tensorlow and Keras. Or if you need to make use of other benefits one can get with Tensorflow; for example Tensorflow serving to serve models or MLOps with TFX.
+# Table of Contents
+1. [About EasyFlow](#about-EasyFlow)
+2. [Motivation](#motivation)
+3. [Installation](#installation)
+4. [Example](#example)
+5. [Tutorials](#tutorials)
 
-Generally we tend to use SKLearn Pipeline for feature engineering and preprocessing before feeding data to a Keras model. Here we end up with `multiple artifacts`; one for preprocessing and feature engineering from SKLearn and the other a Keras saved model. For this case the preprocessing is not part of Keras model which can cause `training-serving skew`. And from a `serving perspective the pipeline is also disconnected` and an extra step is needed to feed encoded data to the Keras model. If you want to use Tensorflow serving for serving models this can cause issues because the preprocessing depends on different python libary. So data first needs to preprocessed before sending for inference. Recently Keras implemented preprocessing layers. Using these layers the Data scientist can apply preprocessing layers as part of the neural network architecture which will prevent training-serving skew. 
+---
 
-One missing component in Keras is a `Pipeline` or `ColumnTransformer` type implementation for Keras preprocessing layers. The EasyFlow package implements these feature Pipelines with an easy interface as Feature Preprocessing layers. Main interfaces are:
+## About EasyFlow
 
-* `FeaturePreprocessor`: This layer applies feature preprocessing steps and returns a separate layer for each       step supplied. This gives more flexibility to the user and if a more advance network architecture is needed. For example something like a Wide and Deep network.
-* `FeatureUnion`: This layer is similar to `FeaturePreprocessor` with an extra step that concatenates all
-layers into a single layer.
+The `EasyFlow` package implements an interface similar to SKLearn's Pipeline API that contains easy feature preprocessing pipelines to build a full training and inference pipeline natively in Keras. All pipelines are implemented as Keras layers. 
 
-## Usage:
+---
 
-Chaining preprocessing layers
+## Motivation
 
-```python
-def StringToIntegerLookup():
-    return PreprocessorChain(
-        [StringLookup(), IntegerLookup(output_mode='binary')]
-    )
-```
-The `PreprocessorChain` can be use to chain multiple layers especially usefull when these steps are dependent on each other.
+There is a need to have a similar interface for Keras that mimics the SKLearn Pipeline API such as `Pipeline`, `FeatureUnion` and `ColumnTransformer`, but natively in Keras as Keras layers. The usual design pattern especially for tabular data is to first do preprocessing with SKLearn and then feed the data to a Keras model. With `EasyFlow` you don't need to leave the Tensorflow/Keras ecosystem to build custom pipelines and your preprocessing pipeline is part of your model architecture.
 
-The `FeatureUnion` layer is one of the two interfaces. Note that we can use our layer above as one of the steps.
+Main interfaces are:
 
-```python
-# FeatureUnion is a Keras layer.
-preprocessor = FeatureUnion([
-    ('normalization', Normalization(), FEATURES_TO_NORMALIZE),
-    ('one_hot_encoding', IntegerLookup(output_mode='binary'), FEATURES_TO_ENCODE),
-    ('string_encoder', StringToIntegerLookup(), STR_FEATURES_TO_ENCODE)
-])
+* `FeaturePreprocessor`: This layer applies feature preprocessing steps and returns a separate layer for each step supplied. This gives more flexibility to the user and if a more advance network architecture is needed. For example something like a Wide and Deep network.
+* `FeatureUnion`: This layer is similar to `FeaturePreprocessor` with an extra step that concatenates all layers into a single layer.
 
-# to update the states for preprocess layers:
-preprocessor.adapt(data)
-```
+---
 
-`Easyflow` also supports both `Pandas DataFrame's` and `tf.data.Dataset` types as input to the Feature Preprocessing pipelines.
+## Installation:
 
-(There is also a training pipeline module for Tensorflow feature columns. This will in future be deprecated and the focus will be on Keras preprocessing module.)
-
-For more examples in future. Check out the python notebooks in the notebooks folder.
-
-# Installation:
 ```bash
 pip install easy-tensorflow
 ```
 
-# Example: Preprocessing using FeatureUnion
-The FeatureUnion interface is similar to SKLearn's ColumnTransformer. Full example also in notebooks folder.
+---
+
+## Example
+
+Lets look at a quick example:
 
 ```python
 import pandas as pd
@@ -109,10 +97,12 @@ dtype_mapper = {
 
 ### Setup Preprocessing layer using FeatureUnion
 
+This is the main part where `EasyFlow` fits in. We can now easily setup a feature preprocessing pipeline as a Keras layer with only a few lines of code.
+
 ```python
 feature_preprocessor_list = [
     ('numeric_encoder', Normalization(), NUMERICAL_FEATURES),
-    ('categorical_encoder', IntegerLookup(output_mode='binary'), CATEGORICAL_FEATURES),
+    ('categorical_encoder', IntegerLookup(output_mode='multi_hot'), CATEGORICAL_FEATURES),
     ('string_encoder', StringToIntegerLookup(), STRING_CATEGORICAL_FEATURES)
 ]
 
@@ -124,6 +114,7 @@ preprocessing_layer = preprocessor(feature_layer_inputs)
 ```
 
 ### Set up network
+
 ```python
 # setup simple network
 x = tf.keras.layers.Dense(128, activation="relu")(preprocessing_layer)
@@ -137,6 +128,25 @@ model.compile(
 ```
 
 ### Fit model
+
 ```python
 history=model.fit(train_data_set, validation_data=val_data_set, epochs=10)
 ```
+
+---
+
+## Tutorials
+
+### Migrate an Sklearn training Pipeline to Tensorflow Keras: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/fernandonieuwveldt/easyflow/blob/develop/examples/migrating_from_sklearn_to_keras/migrate_sklearn_pipeline.ipynb)
+* In this notebook we look at ways to migrate an Sklearn training pipeline to Tensorflow Keras. There might be a few reasons to move from Sklearn to Tensorflow.
+
+
+### Single Input Multiple Output Preprocessor: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/fernandonieuwveldt/easyflow/blob/develop/examples/single_input_multiple_output/single_input_multiple_output_preprocessor.ipynb)
+* In this example we will show case how to apply different transformations and preprocessing steps on the same feature. What we have here is an example of a Single input Multiple output feature transformation scenario.
+
+### Preprocessing module quick intro: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/fernandonieuwveldt/easyflow/blob/develop/examples/preprocessing_example/preprocessing_example.ipynb)
+* The `easyflow.preprocessing` module contains functionality similar to what Sklearn does with its `Pipeline`, `FeatureUnion` and `ColumnTransformer` does. This is a quick introduction.
+
+
+### Tensorflow Feature columns quick intro: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/fernandonieuwveldt/easyflow/blob/develop/examples/feature_column_demo/feature_column_example.ipynb)
+*  Model building Pipeline using `EasyFlow` feature_encoders module. This module is a fusion between Keras layers and Tensorflow feature columns.
