@@ -142,6 +142,9 @@ class PreprocessorChain(tf.keras.layers.Layer):
         return config
 
 
+Pipeline = PreprocessorChain
+
+
 class _PreprocessorChain(tf.keras.models.Sequential):
     """Preprocessing model that chains one or more layers in a sequential order by subclassing
     Sequential model class. The functionality is the same as Pipeline.
