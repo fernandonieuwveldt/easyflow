@@ -242,7 +242,7 @@ def StringToIntegerLookup(**kwargs):
         kwargs: All arguments are related to IntegerLookup
     """
     return PreprocessorChain(
-            [tf.keras.layers.InputLayer(input_shape=[], dtype=tf.string), 
+            [tf.keras.Input(shape=(1,), dtype=tf.string), 
              layers.StringLookup(),
              layers.IntegerLookup(output_mode='multi_hot', **kwargs)]   
     )
