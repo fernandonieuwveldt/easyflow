@@ -83,7 +83,7 @@ class NumericPreprocessingLayer(PreprocessingLayer):
         return dict()
 
 
-class Pipeline(tf.keras.layers.Layer):
+class PreprocessorChain(tf.keras.layers.Layer):
     """Preprocessing layer that chains one or more layers in a sequential order by
     subclassinig Layer class.
 
@@ -92,7 +92,7 @@ class Pipeline(tf.keras.layers.Layer):
     """
 
     def __init__(self, layers_to_adapt, **kwargs):
-        super(Pipeline, self).__init__(**kwargs)
+        super(PreprocessorChain, self).__init__(**kwargs)
         if not isinstance(layers_to_adapt, (list, tuple)):
             layers_to_adapt = [layers_to_adapt]
         self.layers_to_adapt = layers_to_adapt
@@ -142,17 +142,16 @@ class Pipeline(tf.keras.layers.Layer):
         return config
 
 
-class PreprocessorChain(tf.keras.models.Sequential):
+class _PreprocessorChain(tf.keras.models.Sequential):
     """Preprocessing model that chains one or more layers in a sequential order by subclassing
     Sequential model class. The functionality is the same as Pipeline.
     """
 
     def __init__(self, layers_to_adapt=[], **kwargs):
-        super(PreprocessorChain, self).__init__(layers=[], **kwargs)
+        super(_PreprocessorChain, self).__init__(layers=[], **kwargs)
         if not isinstance(layers_to_adapt, (list, tuple)):
             layers_to_adapt = [layers_to_adapt]
         self.layers_to_adapt = layers_to_adapt
-        super().add(tf.keras.layers.InputLayer(input_shape=[], dtype=tf.string), )
 
     def adapt(self, data, *args, **kwargs):
         """Adapt layers to adapt sequentially and add layers with the tf.keras.models.Sequential add 
