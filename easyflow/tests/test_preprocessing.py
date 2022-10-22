@@ -65,7 +65,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [tf.keras.layers.InputLayer(shape=(1,), dtype=tf.string), layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
+                    [tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             ),
@@ -104,7 +104,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [tf.keras.layers.InputLayer(shape=(1,), dtype=tf.string), layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
+                    [tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             ),
@@ -124,7 +124,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [tf.keras.layers.InputLayer(shape=(1,), dtype=tf.string), layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
+                    [tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             )
@@ -142,7 +142,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
                 "string_encoder",
                 PreprocessorChain(
                     [
-                        tf.keras.layers.InputLayer(shape=(1,), dtype=tf.string),
+                        tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string),
                         layers.StringLookup(max_tokens=4),
                         layers.IntegerLookup(output_mode="multi_hot"),
                     ]
