@@ -152,6 +152,7 @@ class PreprocessorChain(tf.keras.models.Sequential):
         if not isinstance(layers_to_adapt, (list, tuple)):
             layers_to_adapt = [layers_to_adapt]
         self.layers_to_adapt = layers_to_adapt
+        super().add(tf.keras.layers.InputLayer(input_shape=[], dtype=tf.string), )
 
     def adapt(self, data, *args, **kwargs):
         """Adapt layers to adapt sequentially and add layers with the tf.keras.models.Sequential add 
