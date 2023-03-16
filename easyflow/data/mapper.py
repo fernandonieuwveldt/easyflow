@@ -42,7 +42,7 @@ class TensorflowDataMapper:
             (tf.data.Dataset, tf.data.Dataset): train and validation datasets
         """
         rows = dataset.cardinality().numpy()
-        dataset = dataset.shuffle(rows)
+        # dataset = dataset.shuffle(rows)
         training_size = int((1 - val_split_fraction) * rows)
         train_data_set = dataset.take(training_size)
         val_data_set = dataset.skip(training_size)
