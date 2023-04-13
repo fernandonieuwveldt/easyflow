@@ -40,7 +40,10 @@ class ModelServer:
         """
         self.pull_docker_image()
         print(f"Starting {self.container_name} container...")
-        command = f"docker run -d -p {self.rest_api_port}:8501 --name {self.container_name} --mount type=bind,source={os.path.abspath(self.model_path)},target=/models/{self.model_name} -e MODEL_NAME={self.model_name} -t {self.docker_image}"
+        command = f"docker run -d -p {self.rest_api_port}:8501 \
+            --name {self.container_name} \
+            --mount type=bind,source={os.path.abspath(self.model_path)},target=/models/{self.model_name} \
+            -e MODEL_NAME={self.model_name} -t {self.docker_image}"
         subprocess.run(command, shell=True)
 
     def stop(self):
@@ -49,6 +52,8 @@ class ModelServer:
         """
         print(f"Stopping {self.container_name} container...")
         command = f"docker stop {self.container_name}"
+        subprocess.run(command, shell=True)
+        command = f"docker rm {self.container_name}"
         subprocess.run(command, shell=True)
 
     def restart(self):
