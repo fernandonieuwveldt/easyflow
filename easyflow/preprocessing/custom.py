@@ -136,9 +136,11 @@ class Pipeline(tf.keras.layers.Layer):
             dict: Updated config
         """
         config = super().get_config()
-        config.update(
-            {"layers_to_adapt": self.layers_to_adapt, "pipeline": self.pipeline}
-        )
+        config.update({
+            "layers_to_adapt": self.layers_to_adapt,
+            "adapted_layers": self.adapted_layers,
+            "pipeline": self.pipeline
+        })
         return config
 
 
