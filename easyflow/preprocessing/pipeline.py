@@ -33,6 +33,10 @@ class FeaturePreprocessor(FeaturePreprocessorFactory):
             for step_name, step_layers in preprocessed_input.items()
         }
         return Bunch(**preprocessed_input)
+    
+    def get_config(self):
+        """Override get_config to ensure saving of models works"""
+        return super().get_config().copy()
 
 
 class FeatureUnion(FeaturePreprocessorFactory):
@@ -64,6 +68,10 @@ class FeatureUnion(FeaturePreprocessorFactory):
         if len(preprocessed_input) > 1:
             return tf.keras.layers.concatenate(preprocessed_input)
         return preprocessed_input.pop()
+
+    def get_config(self):
+        """Override get_config to ensure saving of models works"""
+        return super().get_config().copy()
 
 
 class Bunch(dict):
