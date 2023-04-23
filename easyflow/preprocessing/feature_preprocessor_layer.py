@@ -95,6 +95,19 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
         ]
         return feature_preprocessor_list
 
+    def get_config(self):
+        """Update config with layers_to_adapt attr
+
+        Returns:
+            dict: Updated config
+        """
+        config = super().get_config()
+        config.update({
+            "feature_preprocessor_list": self.feature_preprocessor_list,
+            "adapted_preprocessors": self.adapted_preprocessors
+        })
+        return config
+
 
 class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeaturePreprocessor):
     """Feature Preprocessing Layer for pandas DataFrame type. The class takes in steps of preprocessing that
@@ -182,6 +195,19 @@ class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeatureP
             ),
         ]
         return feature_preprocessor_list
+
+    def get_config(self):
+        """Update config with layers_to_adapt attr
+
+        Returns:
+            dict: Updated config
+        """
+        config = super().get_config()
+        config.update({
+            "feature_preprocessor_list": self.feature_preprocessor_list,
+            "adapted_preprocessors": self.adapted_preprocessors
+        })
+        return config
 
 
 def extract_feature_column_tensorflow(dataset, name):
