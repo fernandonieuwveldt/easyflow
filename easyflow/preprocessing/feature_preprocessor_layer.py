@@ -36,7 +36,7 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
             for k, feature in enumerate(features):
                 # get a fresh preprocessing instance
                 cloned_preprocessor = preprocessor if k==0 else preprocessor.from_config(config)
-                feature_ds = extract_feature_column_tensorflow(dataset, feature)
+                feature_ds = self.extract_feature_column_tensorflow(dataset, feature)
                 # check if layer has adapt method
                 cloned_preprocessor.adapt(feature_ds, *args, **kwargs)
                 self.adapted_preprocessors[feature] = cloned_preprocessor
@@ -57,6 +57,20 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
                 for feature in features
             ]
         return forward_pass
+
+    def extract_feature_column_tensorflow(self, dataset, name):
+        """Extract feature from dataset
+
+        Args:
+            dataset (tf.data.Dataset): Training Data
+            name (str): Name of feature to extract
+
+        Returns:
+            tf.data.Dataset: Mapped dataset for supplied feature.
+        """
+        feature = dataset.map(lambda x, y: x[name])
+        feature = feature.map(lambda x: tf.expand_dims(x, -1))
+        return feature
 
     @classmethod
     def from_infered_pipeline(cls, dataset):
@@ -135,7 +149,7 @@ class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeatureP
             for k, feature in enumerate(features):
                 # get a fresh preprocessing instance
                 cloned_preprocessor = preprocessor if k==0 else preprocessor.from_config(config)
-                feature_ds = extract_feature_column_pandas(dataset, feature)
+                feature_ds = self.extract_feature_column_pandas(dataset, feature)
                 # check if layer has adapt method
                 cloned_preprocessor.adapt(feature_ds, *args, **kwargs)
                 self.adapted_preprocessors[feature] = cloned_preprocessor
@@ -156,6 +170,18 @@ class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeatureP
                 for feature in features
             ]
         return forward_pass
+
+    def extract_feature_column_pandas(self, dataset, name):
+        """Extract feature from dataset
+
+        Args:
+            dataset (pd.DataFrame): Training Data
+            name (str): Name of feature to extract
+
+        Returns:
+            array: numpy array of supplied feature.
+        """
+        return dataset[[name]].values
 
     @classmethod
     def from_infered_pipeline(cls, dataset):
