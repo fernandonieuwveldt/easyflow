@@ -72,15 +72,15 @@ class FeaturePreprocessorFactory(tf.keras.models.Model):
 
         return self.preprocessor_flow(inputs)
 
-    def get_config(self):
-        """Update config with layers_to_adapt attr
+    # def get_config(self):
+    #     """Update config with layers_to_adapt attr
 
-        Returns:
-            dict: Updated config
-        """
-        config = super().get_config()
-        config.update({
-            "feature_preprocessor_list": self.feature_preprocessor_list,
-            "preprocessor_flow": self.preprocessor_flow
-        })
-        return config
+    #     Returns:
+    #         dict: Updated config
+    #     """
+    #     config = super().get_config()
+    #     config.update({
+    #         "feature_preprocessor_list": self.feature_preprocessor_list,
+    #         "preprocessor_flow": self.preprocessor_flow
+    #     })
+    #     return config
