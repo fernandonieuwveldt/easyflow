@@ -42,7 +42,7 @@ class FeaturePreprocessorFromTensorflowDataset(tf.keras.layers.Layer, BaseFeatur
                 self.adapted_preprocessors[feature] = cloned_preprocessor
 
     # what if inputs is not of type dict?
-    @tf.function
+    # @tf.function
     def call(self, inputs):
         """Apply adapted layers on new data.
 
@@ -142,7 +142,7 @@ class FeaturePreprocessorFromPandasDataFrame(tf.keras.layers.Layer, BaseFeatureP
                 cloned_preprocessor.adapt(feature_ds, *args, **kwargs)
                 self.adapted_preprocessors[feature] = cloned_preprocessor
 
-    @tf.function
+    # @tf.function
     def call(self, inputs):
         """Apply adapted layers on new data
 
