@@ -1,3 +1,6 @@
+## VERSION 1.4.3
+* Minor update to the classes that contained serialization errors.
+
 ## VERSION 1.4.2
 * Added temp fix when using StringLookup layer as first layer in Keras Sequential model
   (reference: https://github.com/keras-team/keras/issues/16101)
