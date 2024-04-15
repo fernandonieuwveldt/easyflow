@@ -66,7 +66,6 @@ class TestPreprocessingPipelines(unittest.TestCase):
                 "string_encoder",
                 PreprocessorChain(
                     [
-                     # tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), 
                      layers.StringLookup(),
                      layers.IntegerLookup(output_mode="multi_hot")]
                 ),
@@ -79,7 +78,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
         """
         preprocessor = FeaturePreprocessor(self.feature_preprocessor_list)
         preprocessor.adapt(self.dataframe)
-        preprocessing_layer = preprocessor(self.all_feature_inputs)
+        preprocessing_layer = preprocessor.call(self.all_feature_inputs)
         assert list(preprocessing_layer.keys()) == ['numeric_encoder', 'categorical_encoder', 'string_encoder']
         assert preprocessing_layer.numeric_encoder.shape[-1] == 6
 
@@ -93,35 +92,35 @@ class TestPreprocessingPipelines(unittest.TestCase):
         # test if the model ran through all 10 epochs
         assert len(history.history["loss"]) == 10
 
-    # def test_identity_layer(self):
-    #     """Test that if preprocessor is None, the IdentityPreprocessing layer should be applied
-    #     """
-    #     feature_encoder_list_none = [
-    #         ("numeric_encoder", None, self.numerical_features),
-    #         (
-    #             "categorical_encoder",
-    #             layers.IntegerLookup(output_mode="multi_hot"),
-    #             self.categorical_features,
-    #         ),
-    #         # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
-    #         (
-    #             "string_encoder",
-    #             PreprocessorChain(
-    #                 [
-    #                  #tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), 
-    #                  layers.StringLookup(),
-    #                  layers.IntegerLookup(output_mode="multi_hot")]
-    #             ),
-    #             self.string_categorical_features,
-    #         ),
-    #     ]
+    def test_identity_layer(self):
+        """Test that if preprocessor is None, the IdentityPreprocessing layer should be applied
+        """
+        feature_encoder_list_none = [
+            ("numeric_encoder", None, self.numerical_features),
+            (
+                "categorical_encoder",
+                layers.IntegerLookup(output_mode="multi_hot"),
+                self.categorical_features,
+            ),
+            # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
+            (
+                "string_encoder",
+                PreprocessorChain(
+                    [
+                     #tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), 
+                     layers.StringLookup(),
+                     layers.IntegerLookup(output_mode="multi_hot")]
+                ),
+                self.string_categorical_features,
+            ),
+        ]
 
-    #     all_feature_inputs, history = train_model_util(
-    #         self.dataset, self.all_feature_inputs, feature_encoder_list_none
-    #     )
-    #     assert len(all_feature_inputs) == 13
-    #     # test if the model ran through all 10 epochs
-    #     assert len(history.history["loss"]) == 10
+        all_feature_inputs, history = train_model_util(
+            self.dataset, self.all_feature_inputs, feature_encoder_list_none
+        )
+        assert len(all_feature_inputs) == 13
+        # test if the model ran through all 10 epochs
+        assert len(history.history["loss"]) == 10
 
     def test_preprocessing_layer_with_no_args(self):
         """Test preprocessing layers with no arguments supplied
@@ -131,7 +130,6 @@ class TestPreprocessingPipelines(unittest.TestCase):
                 "string_encoder",
                 PreprocessorChain(
                     [
-                        # tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string),
                         layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
@@ -150,7 +148,6 @@ class TestPreprocessingPipelines(unittest.TestCase):
                 "string_encoder",
                 PreprocessorChain(
                     [
-                        # tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string),
                         layers.StringLookup(max_tokens=4),
                         layers.IntegerLookup(output_mode="multi_hot"),
                     ]
@@ -162,24 +159,6 @@ class TestPreprocessingPipelines(unittest.TestCase):
         preprocessor.adapt(self.dataset)
         preprocessing_layer = preprocessor(self.all_feature_inputs)
         assert preprocessing_layer.shape[-1] == 5
-
-    # def test_adapt_with_args(self):
-    #     """Test pipeline with args passed to .adapt
-    #     """
-    #     steps_list = [
-    #             ("numeric_encoder", layers.Normalization(), self.numerical_features)
-    #     ]
-    #     # Apply on tf.data dataset
-    #     preprocessor = FeatureUnion(steps_list)
-    #     preprocessor.adapt(self.dataset, steps=1)
-    #     preprocessing_layer = preprocessor(self.all_feature_inputs)
-    #     assert preprocessing_layer.shape[-1] == 6
-    #     del preprocessor
-    #     # Apply on dataframe
-    #     preprocessor = FeatureUnion(steps_list)
-    #     preprocessor.adapt(self.dataframe, steps=1)
-    #     preprocessing_layer = preprocessor(self.all_feature_inputs)
-    #     assert preprocessing_layer.shape[-1] == 6
 
     def test_infered_pipeline(self):
         """test infered pipeline"""

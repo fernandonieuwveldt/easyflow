@@ -1,6 +1,5 @@
 """Custom preprocessing layers"""
 
-from tensorflow.python.keras.engine.base_preprocessing_layer import PreprocessingLayer
 import tensorflow as tf
 from tensorflow.keras import layers
 
@@ -69,8 +68,11 @@ class FeatureInputLayer:
         }
 
 
-class NumericPreprocessingLayer(PreprocessingLayer):
+class NumericPreprocessingLayer(tf.keras.layers.Layer):
     """Helper class to apply no preprocessing and use feature as is"""
+
+    def adapt(self, data):
+        pass
 
     def call(self, inputs):
         return tf.keras.layers.Reshape((1,))(inputs)
@@ -244,7 +246,6 @@ def StringToIntegerLookup(**kwargs):
         kwargs: All arguments are related to IntegerLookup
     """
     return PreprocessorChain([
-            #  tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string),
              layers.StringLookup(),
              layers.IntegerLookup(output_mode='multi_hot', **kwargs)]   
     )
