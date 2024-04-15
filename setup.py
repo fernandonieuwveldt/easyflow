@@ -6,12 +6,12 @@ from setuptools import setup, find_packages
 HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text(encoding='utf-8')
 REQUIREMENTS = (pathlib.Path(__file__).parent / "requirements.txt").read_text().splitlines()[1:]
-REQUIRES_PYTHON = '>=3.7.0'
+REQUIRES_PYTHON = '>=3.10'
 
 
 setup(
     name="easy-tensorflow",
-    version="1.4.3",
+    version="1.5.0",
     author="Fernando Nieuwveldt",
     author_email="fdnieuwveldt@gmail.com",
     description="Feature Pipelines for Keras preprocessing layers.",

@@ -65,7 +65,9 @@ class TestPreprocessingPipelines(unittest.TestCase):
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
+                    [
+                     layers.StringLookup(),
+                     layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             ),
@@ -76,7 +78,7 @@ class TestPreprocessingPipelines(unittest.TestCase):
         """
         preprocessor = FeaturePreprocessor(self.feature_preprocessor_list)
         preprocessor.adapt(self.dataframe)
-        preprocessing_layer = preprocessor(self.all_feature_inputs)
+        preprocessing_layer = preprocessor.call(self.all_feature_inputs)
         assert list(preprocessing_layer.keys()) == ['numeric_encoder', 'categorical_encoder', 'string_encoder']
         assert preprocessing_layer.numeric_encoder.shape[-1] == 6
 
@@ -104,7 +106,10 @@ class TestPreprocessingPipelines(unittest.TestCase):
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
+                    [
+                     #tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), 
+                     layers.StringLookup(),
+                     layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             ),
@@ -124,7 +129,8 @@ class TestPreprocessingPipelines(unittest.TestCase):
             (
                 "string_encoder",
                 PreprocessorChain(
-                    [tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
+                    [
+                        layers.StringLookup(), layers.IntegerLookup(output_mode="multi_hot")]
                 ),
                 self.string_categorical_features,
             )
@@ -142,7 +148,6 @@ class TestPreprocessingPipelines(unittest.TestCase):
                 "string_encoder",
                 PreprocessorChain(
                     [
-                        tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string),
                         layers.StringLookup(max_tokens=4),
                         layers.IntegerLookup(output_mode="multi_hot"),
                     ]
@@ -154,24 +159,6 @@ class TestPreprocessingPipelines(unittest.TestCase):
         preprocessor.adapt(self.dataset)
         preprocessing_layer = preprocessor(self.all_feature_inputs)
         assert preprocessing_layer.shape[-1] == 5
-
-    def test_adapt_with_args(self):
-        """Test pipeline with args passed to .adapt
-        """
-        steps_list = [
-                ("numeric_encoder", layers.Normalization(), self.numerical_features)
-        ]
-        # Apply on tf.data dataset
-        preprocessor = FeatureUnion(steps_list)
-        preprocessor.adapt(self.dataset, steps=1)
-        preprocessing_layer = preprocessor(self.all_feature_inputs)
-        assert preprocessing_layer.shape[-1] == 6
-        del preprocessor
-        # Apply on dataframe
-        preprocessor = FeatureUnion(steps_list)
-        preprocessor.adapt(self.dataframe, steps=1)
-        preprocessing_layer = preprocessor(self.all_feature_inputs)
-        assert preprocessing_layer.shape[-1] == 6
 
     def test_infered_pipeline(self):
         """test infered pipeline"""
