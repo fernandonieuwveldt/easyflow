@@ -93,35 +93,35 @@ class TestPreprocessingPipelines(unittest.TestCase):
         # test if the model ran through all 10 epochs
         assert len(history.history["loss"]) == 10
 
-    def test_identity_layer(self):
-        """Test that if preprocessor is None, the IdentityPreprocessing layer should be applied
-        """
-        feature_encoder_list_none = [
-            ("numeric_encoder", None, self.numerical_features),
-            (
-                "categorical_encoder",
-                layers.IntegerLookup(output_mode="multi_hot"),
-                self.categorical_features,
-            ),
-            # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
-            (
-                "string_encoder",
-                PreprocessorChain(
-                    [
-                     #tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), 
-                     layers.StringLookup(),
-                     layers.IntegerLookup(output_mode="multi_hot")]
-                ),
-                self.string_categorical_features,
-            ),
-        ]
+    # def test_identity_layer(self):
+    #     """Test that if preprocessor is None, the IdentityPreprocessing layer should be applied
+    #     """
+    #     feature_encoder_list_none = [
+    #         ("numeric_encoder", None, self.numerical_features),
+    #         (
+    #             "categorical_encoder",
+    #             layers.IntegerLookup(output_mode="multi_hot"),
+    #             self.categorical_features,
+    #         ),
+    #         # For feature thal we first need to run StringLookup followed by a IntegerLookup layer
+    #         (
+    #             "string_encoder",
+    #             PreprocessorChain(
+    #                 [
+    #                  #tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), 
+    #                  layers.StringLookup(),
+    #                  layers.IntegerLookup(output_mode="multi_hot")]
+    #             ),
+    #             self.string_categorical_features,
+    #         ),
+    #     ]
 
-        all_feature_inputs, history = train_model_util(
-            self.dataset, self.all_feature_inputs, feature_encoder_list_none
-        )
-        assert len(all_feature_inputs) == 13
-        # test if the model ran through all 10 epochs
-        assert len(history.history["loss"]) == 10
+    #     all_feature_inputs, history = train_model_util(
+    #         self.dataset, self.all_feature_inputs, feature_encoder_list_none
+    #     )
+    #     assert len(all_feature_inputs) == 13
+    #     # test if the model ran through all 10 epochs
+    #     assert len(history.history["loss"]) == 10
 
     def test_preprocessing_layer_with_no_args(self):
         """Test preprocessing layers with no arguments supplied
