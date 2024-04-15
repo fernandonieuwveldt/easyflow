@@ -33,7 +33,7 @@ jobs:
       - name: "Test with unittest"
         run: |
           # install dependency for tests
-          pip install pandas==1.0.0
+          pip install pandas
           python3 -m unittest discover
 
       - name: "Builds and uploads to PyPI"
