@@ -1,3 +1,7 @@
+## VERSION 1.5.0
+* Bump Python to 3.10
+* Update code to be compatible with Keras 3
+
 ## VERSION 1.4.3
 * Minor update to the classes that contained serialization errors.
 * Minor fix to one of the notebook examples
