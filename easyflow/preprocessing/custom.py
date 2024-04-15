@@ -1,6 +1,5 @@
 """Custom preprocessing layers"""
 
-from tensorflow.python.keras.engine.base_preprocessing_layer import PreprocessingLayer
 import tensorflow as tf
 from tensorflow.keras import layers
 
@@ -69,8 +68,11 @@ class FeatureInputLayer:
         }
 
 
-class NumericPreprocessingLayer(PreprocessingLayer):
+class NumericPreprocessingLayer(tf.keras.layers.Layer):
     """Helper class to apply no preprocessing and use feature as is"""
+
+    def adapt(self, data):
+        pass
 
     def call(self, inputs):
         return tf.keras.layers.Reshape((1,))(inputs)
@@ -155,7 +157,7 @@ class PreprocessorChain(tf.keras.models.Sequential):
             layers_to_adapt = [layers_to_adapt]
         self.layers_to_adapt = layers_to_adapt
 
-    def adapt(self, data, *args, **kwargs):
+    def adapt(self, data):
         """Adapt layers to adapt sequentially and add layers with the tf.keras.models.Sequential add 
         method.
 
@@ -164,7 +166,7 @@ class PreprocessorChain(tf.keras.models.Sequential):
         """
         for counter, layer in enumerate(self.layers_to_adapt):
             if hasattr(layer, 'adapt'):
-                layer.adapt(data, *args, **kwargs)
+                layer.adapt(data)
 
             super().add(layer)
 
@@ -198,7 +200,7 @@ class MultiOutputTransformer(tf.keras.layers.Layer):
         self.steps = steps
         self.processed_layers = []
 
-    def adapt(self, data, *args, **kwargs):
+    def adapt(self, data):
         """Apply different or independent preprocessing steps on the same data. The results will be concatenated
         into a single layer.
 
@@ -207,7 +209,7 @@ class MultiOutputTransformer(tf.keras.layers.Layer):
         """
         for layer in self.steps:
             if hasattr(layer, 'adapt'):
-                layer.adapt(data, *args, **kwargs)
+                layer.adapt(data)
             self.processed_layers.append(layer)
 
     def call(self, inputs):
@@ -244,7 +246,6 @@ def StringToIntegerLookup(**kwargs):
         kwargs: All arguments are related to IntegerLookup
     """
     return PreprocessorChain([
-             tf.keras.layers.InputLayer(input_shape=(1,), dtype=tf.string), 
              layers.StringLookup(),
              layers.IntegerLookup(output_mode='multi_hot', **kwargs)]   
     )

@@ -37,7 +37,7 @@ class FeaturePreprocessorFactory(tf.keras.models.Model):
             )
             return cls(feature_preprocessor_list)
 
-    def adapt(self, dataset, *args, **kwargs):
+    def adapt(self, dataset):
         """Adapt preprocessing layers.
 
         Args:
@@ -56,7 +56,7 @@ class FeaturePreprocessorFactory(tf.keras.models.Model):
         if not self.preprocessor_flow:
             raise Exception("Datatype not supported: dataset should be of type pandas DataFrame or Tensorflow tf.data.Dataset")
 
-        self.preprocessor_flow.adapt(dataset, *args, **kwargs)
+        self.preprocessor_flow.adapt(dataset)
 
     def call(self, inputs):
         """Apply adapted layers on new data
