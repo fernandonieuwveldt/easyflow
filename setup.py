@@ -11,7 +11,7 @@ REQUIRES_PYTHON = '>=3.10'
 
 setup(
     name="easy-tensorflow",
-    version="1.4.3",
+    version="1.5.0",
     author="Fernando Nieuwveldt",
     author_email="fdnieuwveldt@gmail.com",
     description="Feature Pipelines for Keras preprocessing layers.",

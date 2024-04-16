@@ -146,7 +146,3 @@ history=model.fit(train_data_set, validation_data=val_data_set, epochs=10)
 
 ### Preprocessing module quick intro: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/fernandonieuwveldt/easyflow/blob/develop/examples/preprocessing_example/preprocessing_example.ipynb)
 * The `easyflow.preprocessing` module contains functionality similar to what Sklearn does with its `Pipeline`, `FeatureUnion` and `ColumnTransformer` does. This is a quick introduction.
-
-
-### Tensorflow Feature columns quick intro: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/fernandonieuwveldt/easyflow/blob/develop/examples/feature_column_demo/feature_column_example.ipynb)
-*  Model building Pipeline using `EasyFlow` feature_encoders module. This module is a fusion between Keras layers and Tensorflow feature columns.
